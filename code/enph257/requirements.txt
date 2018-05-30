@@ -1,0 +1,2 @@
+keyboard==0.13.2
+pyserial==3.4

@@ -1,8 +1,8 @@
 #include <phys253.h>
 #include <LiquidCrystal.h>
 
-const int qrd_left = 0;
-const int qrd_right = 5;
+const int QRD_LEFT_PIN = 0;
+const int QRD_RIGHT_PIN = 5;
 const int motor_left = 0;
 const int motor_right = 1;
 boolean start_flag = 0;
@@ -13,7 +13,7 @@ void setup() {
 
 }
 
-void loop() {
+void loop() { 
 
   int left;
   int right;
@@ -27,16 +27,20 @@ void loop() {
     motor.speed(motor_left,left_motor_speed);
     motor.speed(motor_right,right_motor_speed);
 
-    left = analogRead(qrd_left);
-    right = analogRead(qrd_right);
+    left = analogRead(QRD_LEFT_PIN);
+    right = analogRead(QRD_RIGHT_PIN);
 
+    // Turn right 
     if(left - right > 5){
       left_motor_speed -= 20;
       right_motor_speed = 200;
-    }else if(right -left > 5){
+    }
+    // Turn left 
+    else if(right - left > 5){
       right_motor_speed -=20;
       left_motor_speed = 200; 
-    }else{
+    }
+    else {
       left_motor_speed = 200;
       right_motor_speed = 200;  
     }
