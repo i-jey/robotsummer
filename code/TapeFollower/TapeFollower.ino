@@ -9,9 +9,9 @@ const int rightQRDPin = 5;
 
 //******* Constants *******//
 const int defaultMotorSpeed = 200;
-const int Kp = 1;
-const int Ki = 1;
-const int Kd = 1;
+int Kp = 1;
+int Ki = 1;
+int Kd = 1;
 //const int speedIncrease = 20;
 //const int sensorTolerance = 5;
 
@@ -21,8 +21,8 @@ int startingRightReading;
 int currentLeftReading;
 int currentRightReading;
 
-int currentLeftError
-int currentRightError
+int currentLeftError;
+int currentRightError;
 int lastLeftError = 0;
 int lastRightError = 0;
 
@@ -46,7 +46,7 @@ void setup() {
   //Start countdown
   LCD.setCursor(0,0);
   LCD.print("Starting in");
-  for(int i = 0; i<4; i++) {
+  for(int i = 3; i>=1; i--) {
     LCD.setCursor(0,1);
     LCD.print(i);
     delay(1000);
@@ -62,32 +62,47 @@ void setup() {
 }
 
 void loop() {
+  if(stopbutton()) {
+    motor.stop_all();
+    return;
+  }
+  else {
   //PID:
 
-  //Read both QRDs
-  currentLeftReading = analogRead(leftQRDPin);
-  currentRightReading = analogRead(rightQRDPin);
+    Kp = knob(6);
+    Ki = knob(7)/100;
+    LCD.clear();
+    LCD.setCursor(0, 0);
+    LCD.print("Kp: ");
+    LCD.print(Kp);
+    LCD.setCursor(0, 1);
+    LCD.print("Ki: ");
+    LCD.print(Ki);
 
-  //Error = amount off tape, compared to start
-  currentLeftError = currentLeftReading - startingLeftReading;
-  currentRightError = currentRightReading - startingRightReading;
+    //Read both QRDs
+    currentLeftReading = analogRead(leftQRDPin);
+    currentRightReading = analogRead(rightQRDPin);
 
-  //output = Kp*error + Ki*(sum of error / interval) + Kd*(change in error / interval)
-  leftMotorIncrease = Kp*(currentLeftError) + Ki*(leftErrorSum) + Kd*(currentLeftError - lastLeftError);
-  rightMotorIncrease = Kp*(currentRightError) + Ki*(rightErrorSum) + Kd*(currentRightError - lastRightError);
+    //Error = amount off tape, compared to start
+    currentLeftError = currentLeftReading - startingLeftReading;
+    currentRightError = currentRightReading - startingRightReading;
 
-  //Increase motor speeds accordingly. If still on the tape, motorIncrease should be 0, and that motor will go back to default speed
-  motor.speed(leftMotor, defaultMotorSpeed + leftMotorIncrease);
-  motor.speed(rightMotor, defaultMotorSpeed + rightMotorIncrease);
-
-  //Increment error integrals
-  leftErrorSum += currentLeftError;
-  rightErrorSum += currentRightError;
-
-  //Store current error for derivative term
-  lastLeftError = currentLeftError;
-  lastRightError = currentLeftError;
+    //output = Kp*error + Ki*(sum of error * interval) + Kd*(change in error / interval)
+    leftMotorIncrease = Kp*(currentLeftError) + Ki*(leftErrorSum) + Kd*(currentLeftError - lastLeftError);
+    rightMotorIncrease = Kp*(currentRightError) + Ki*(rightErrorSum) + Kd*(currentRightError - lastRightError);
   
+    //Increase motor speeds accordingly. If still on the tape, motorIncrease should be 0, and that motor will go back to default speed
+    motor.speed(leftMotor, defaultMotorSpeed + leftMotorIncrease);
+    motor.speed(rightMotor, defaultMotorSpeed + rightMotorIncrease);
+  
+    //Increment error integrals
+    leftErrorSum += currentLeftError;
+    rightErrorSum += currentRightError;
+  
+    //Store current error for derivative term
+    lastLeftError = currentLeftError;
+    lastRightError = currentLeftError;
+  }
   /*
   // read left and right
   //if left > right //if sensor is on black, reading is lower
