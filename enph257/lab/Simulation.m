@@ -7,9 +7,9 @@ c = 921;
 k = 180;
 k_c = k/c;
 p = 2700;               %kg/m^3  Density                    ""
-kc = 9.0;                %W/m^2K  Conduction Constant        ""
+kc = 10;                %W/m^2K  Conduction Constant        ""
 C = k/(c*p);            %Thermal Diffusivity Constant       ""
-e = 0.2;                %Emissivity                         ""
+e = 0.60;                %Emissivity                         ""
 sig = 5.67*10^(-8);     %Boltzman Constant
 
 %---------------------Material Dimentions----------------------%
@@ -19,16 +19,16 @@ area = r*r*pi();        %Area (m^2)
 
 %--------------------Environment Constants---------------------%
 Tamb = 293;             %Ambiant Tempurature
-TempL = 29.59+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
-TempR = 25.20+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
-Pin = 8.5;             %Power in
+TempL = 19.34+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
+TempR = 18.85+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
+Pin = 8.25;             %Power in
 
 %---------------Numerical Calculation Constants----------------%
 dx = 0.01;              %Thickness of step (mm)
 dt = 0.1;               %Time step (ms)
 N = floor(l/dx);        %Number of segments
-runTime = 3300;          %Run time (s)
-startTime = 5.7;
+runTime = 7200;          %Run time (s)
+startTime = 6.5;
 step = 0;               %Number of loop run times
 elapsedTime = 0;        %Total elapsed time
 
@@ -125,7 +125,7 @@ plot(time*dt, sensTemp(3,:)-273, 'g');
 plot(time*dt, sensTemp(4,:)-273, 'y');
 plot(time*dt, sensTemp(5,:)-273, 'b');
  
-test = csvread('vertical-period700s-duration1h-power15W.txt',1,0);
+test = csvread('black-horizontal-period700s-duration2h-power15w.txt',1,0);
 plot(test(:,1)/1000, test(:,2), 'r');
 hold on
 plot(test(:,1)/1000, test(:,3), 'm');
@@ -135,6 +135,8 @@ plot(test(:,1)/1000, test(:,6), 'b');
 
 xlabel('Time (s)')
 ylabel('Tempurature (C)')
+title('Horizontal Painted, 15W')
+legend('S1','S2','S3','S4','S5','Location','southeast');
 
 
     
