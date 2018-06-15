@@ -1,12 +1,15 @@
 %----------------------Material Constants----------------------%
 %c = 921;                %J/(kgK) Specific heat capacity of aluminium
 %k = 235;                %W/(mK)  Conductivity               ""
-c = 1250;
-k = 500;
+%k/c theoretical = 0.255
+%-------At k = 280 and c = 1000 1st one is not bad-------------%
+c = 921;
+k = 220;
+k_c = k/c;
 p = 2700;               %kg/m^3  Density                    ""
-kc = 5.62;              %W/m^2K  Conduction Constant        ""
+kc = 11.5;              %W/m^2K  Conduction Constant        ""
 C = k/(c*p);            %Thermal Diffusivity Constant       ""
-e = 0.07;               %Emissivity                         ""
+e = 0.20;                %Emissivity                         ""
 sig = 5.67*10^(-8);     %Boltzman Constant
 
 %---------------------Material Dimentions----------------------%
@@ -16,15 +19,15 @@ area = r*r*pi();        %Area (m^2)
 
 %--------------------Environment Constants---------------------%
 Tamb = 293;             %Ambiant Tempurature
-TempL = 20.66+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
-TempR = 20.00+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
-Pin = 15;               %Power in
+TempL = 24.227+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
+TempR = 21.169+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
+Pin = 8.2;               %Power in
 
 %---------------Numerical Calculation Constants----------------%
 dx = 0.01;              %Thickness of step (mm)
 dt = 0.1;               %Time step (ms)
 N = floor(l/dx);        %Number of segments
-runTime = 57867;          %Run time (s)
+runTime = 7200;          %Run time (s)
 step = 0;               %Number of loop run times
 elapsedTime = 0;        %Total elapsed time
 
@@ -114,12 +117,24 @@ for i = 0:dt:runTime
 %     pause(0.00001);
 end
 
-for i = 1:1:5
+for i = 1:1:3
     plot(time*dt,sensTemp(i,:)-273);
     hold on
 end
 xlabel('Time (s)')
 ylabel('Tempurature (C)')
- %plot(spacing,sensTemp(:,290/dt),'*');
+
+%plot(spacing,sensTemp(:,290/dt),'*');
+hold on 
+ 
+test = csvread('Trial8_2018-04-06-17_00_cycle700s_duration2h_filtered.txt',1,0);
+plot(test(:,1), test(:,2));
+plot(test(:,1), test(:,3));
+plot(test(:,1), test(:,4));
+%plot(test(:,1)/1000, test(:,5));
+
+difference = test(:,2).';
+%figure(2);
+%plot(difference, time)
     
  
