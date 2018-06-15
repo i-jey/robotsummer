@@ -4,12 +4,12 @@
 %k/c theoretical = 0.255
 %-------At k = 280 and c = 1000 1st one is not bad-------------%
 c = 921;
-k = 220;
+k = 180;
 k_c = k/c;
 p = 2700;               %kg/m^3  Density                    ""
-kc = 11.5;              %W/m^2K  Conduction Constant        ""
+kc = 9.0;                %W/m^2K  Conduction Constant        ""
 C = k/(c*p);            %Thermal Diffusivity Constant       ""
-e = 0.20;                %Emissivity                         ""
+e = 0.2;                %Emissivity                         ""
 sig = 5.67*10^(-8);     %Boltzman Constant
 
 %---------------------Material Dimentions----------------------%
@@ -19,15 +19,16 @@ area = r*r*pi();        %Area (m^2)
 
 %--------------------Environment Constants---------------------%
 Tamb = 293;             %Ambiant Tempurature
-TempL = 24.227+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
-TempR = 21.169+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
-Pin = 8.2;               %Power in
+TempL = 29.59+273;      %Tempurature of far left segement        SET BASED ON CONDITIONS OF EXPERIMENT
+TempR = 25.20+273;      %Tempurature of far right segment       SET BASED ON CONDITIONS OF EXPERIMENT
+Pin = 8.5;             %Power in
 
 %---------------Numerical Calculation Constants----------------%
 dx = 0.01;              %Thickness of step (mm)
 dt = 0.1;               %Time step (ms)
 N = floor(l/dx);        %Number of segments
-runTime = 7200;          %Run time (s)
+runTime = 3300;          %Run time (s)
+startTime = 5.7;
 step = 0;               %Number of loop run times
 elapsedTime = 0;        %Total elapsed time
 
@@ -38,8 +39,8 @@ spacing = [floor(0.0125/dx) floor(0.0825/dx) floor(0.1525/dx) floor(0.2225/dx) f
 period = 700;           %Total period of switch (s)
 
 %-------------------------Array Setup--------------------------%
-sensTemp = zeros(sensors,runTime/dt);       %Sensor Tempurature in Time
-time = linspace(0,runTime/dt,runTime/dt+1); %Plot time dimention
+sensTemp = zeros(sensors,runTime/dt-startTime/dt );       %Sensor Tempurature in Time
+time = linspace(startTime/dt,runTime/dt+1,runTime/dt-startTime/dt+1); %Plot time dimention
 delta = zeros(1,N+1);                       %Tempurature changes array
 distance = linspace(0,N,N+1);               %Plot length dimention
 peaks = [0 0 0 0 0];
@@ -50,7 +51,7 @@ peakFlag = [0 0 0 0 0];
 rod_temp = linspace(TempL,TempR,N+1);
 
 %-------------------------Heat Transfer------------------------%
-for i = 0:dt:runTime
+for i = startTime:dt:runTime
     
     %-------------------------Powered Segment------------------------%
     flag = sign(sin(2*pi*elapsedTime/period));
@@ -116,25 +117,25 @@ for i = 0:dt:runTime
 %     ylim([15 80])
 %     pause(0.00001);
 end
+% 
+plot(time*dt, sensTemp(1,:)-273, 'r');
+hold on
+plot(time*dt, sensTemp(2,:)-273, 'm');
+plot(time*dt, sensTemp(3,:)-273, 'g');
+plot(time*dt, sensTemp(4,:)-273, 'y');
+plot(time*dt, sensTemp(5,:)-273, 'b');
+ 
+test = csvread('vertical-period700s-duration1h-power15W.txt',1,0);
+plot(test(:,1)/1000, test(:,2), 'r');
+hold on
+plot(test(:,1)/1000, test(:,3), 'm');
+plot(test(:,1)/1000, test(:,4), 'g');
+plot(test(:,1)/1000, test(:,5), 'y');
+plot(test(:,1)/1000, test(:,6), 'b');
 
-for i = 1:1:3
-    plot(time*dt,sensTemp(i,:)-273);
-    hold on
-end
 xlabel('Time (s)')
 ylabel('Tempurature (C)')
 
-%plot(spacing,sensTemp(:,290/dt),'*');
-hold on 
- 
-test = csvread('Trial8_2018-04-06-17_00_cycle700s_duration2h_filtered.txt',1,0);
-plot(test(:,1), test(:,2));
-plot(test(:,1), test(:,3));
-plot(test(:,1), test(:,4));
-%plot(test(:,1)/1000, test(:,5));
 
-difference = test(:,2).';
-%figure(2);
-%plot(difference, time)
     
  
