@@ -40,4 +40,4 @@ Elecctrical Circuits
 ===
 
 ## High-side driver H-Bridge
-![](https://raw.githubusercontent.com/tojoe/robotsummer/msater/images/High-side%20Driver%20H-Bridge.PNG)
+![](https://raw.githubusercontent.com/i-jey/robotsummer/blob/master/images/high-side-driver-H-bridge.png)
