@@ -16,5 +16,5 @@
 <br>
 <span style="color:grey">Grey-QRD Signal</span>
 <br>
-<span style="color:brown">Brown-IR Signal</span>
+<span style="color:grey">Grey-IR Signal</span>
 
