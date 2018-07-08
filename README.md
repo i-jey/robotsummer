@@ -35,3 +35,9 @@ If the code fails to upload, the error is usually one of the following:
 ## Pinout Reference
 ---
 ![Pinout](http://wiki.stm32duino.com/images/a/ae/Bluepillpinout.gif)
+
+Elecctrical Circuits
+===
+
+## High-side driver H-Bridge
+![](https://raw.githubusercontent.com/i-jey/robotsummer/master/images/high-side-driver-H-bridge.PNG)

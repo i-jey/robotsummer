@@ -1,8 +1,7 @@
 #include <phys253.h>
 #include <LiquidCrystal.h>
 
-const int motor_left = 0;
-const int motor_right = 1;
+const int motor_pin = 2;
 
 void setup() {
   #include <phys253setup.txt>
@@ -25,7 +24,7 @@ void loop() {
   float val = knob(6); 
   float out = 0.5 * val - 255; 
 
-  motor.speed(motor_right, out);
+  motor.speed(motor_pin, out);
 
   LCD.setCursor(0, 0); 
   LCD.print("Knob: ");
