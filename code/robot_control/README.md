@@ -1,6 +1,11 @@
 Control Code 
 === 
 
+VSCode and PlatformIO
+--- 
+1. [Download VSCode](https://code.visualstudio.com/download)
+2. [Install PlatformIO](https://platformio.org/get-started/ide?install=vscode)
+
 src/
 --- 
 This is where the main jazz is located. Things have been modularized so far by sequences (i.e bridge deployment sequences, claw sequence, basket sequence). You'll find `.h` and `.cpp` files here (abstracts and implementation respectively). 
