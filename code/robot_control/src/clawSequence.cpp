@@ -2,10 +2,10 @@
 #include "clawSequence.h"
 
 ClawSequence::ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay) { 
-    arm = arm; 
-    raiseDelay = raiseDelay; 
-    openDelay = openDelay;
-    lowerDelay = lowerDelay;
+    this->arm = arm; 
+    this->raiseDelay = raiseDelay; 
+    this->openDelay = openDelay;
+    this->lowerDelay = lowerDelay;
 }
 
 void ClawSequence::reset() { 

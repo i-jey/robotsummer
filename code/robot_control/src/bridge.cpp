@@ -7,8 +7,8 @@ Bridge::Bridge(){}; // Default constructor otherwise C++ whines
 Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin) { 
     bridgeServo1.attach(bridgePin1); 
     bridgeServo2.attach(bridgePin2); 
-    QRDLeft = QRDLeftPin; 
-    QRDRight = QRDRightPin;
+    this->QRDLeft = QRDLeftPin; 
+    this->QRDRight = QRDRightPin;
 }
 
 bool Bridge::detectEdge() { 

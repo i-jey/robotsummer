@@ -5,7 +5,7 @@ Arm::Arm(){}; // default constructor otherwise C++ whines
 Arm::Arm(int clampPin, int armPin, int pushButton) { 
     clampServo.attach(clampPin); 
     armServo.attach(armPin);  
-    pushButton = pushButton; 
+    this->pushButton = pushButton; 
 }
 
 bool Arm::close() {

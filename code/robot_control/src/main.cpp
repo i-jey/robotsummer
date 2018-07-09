@@ -1,30 +1,30 @@
 #include "includes.h"
 
 // Left claw pins 
-int left_clamp_pin = PA1; 
-int left_arm_pin = PA2; 
-int left_push_button = PA3; 
+const int left_clamp_pin = PA1; 
+const int left_arm_pin = PA2; 
+const int left_push_button = PA3; 
 
 // Right claw pins
-int right_clamp_pin = PA4; 
-int right_arm_pin = PA5;
-int right_push_button = PA6;  
+const int right_clamp_pin = PA4; 
+const int right_arm_pin = PA5;
+const int right_push_button = PA6;  
 
 // Bridge servos 
-int bridge1_pin = PA7; 
-int bridge2_pin = PA8; 
+const int bridge1_pin = PA7; 
+const int bridge2_pin = PA8; 
 
 // Edge QRDs
-int leftEdgeQRD = PA11; 
-int rightEdgeQRD = PA12; 
+const int leftEdgeQRD = PA11; 
+const int rightEdgeQRD = PA12; 
 
-int raiseClawDelay = 250; 
-int openClawDelay = 1000; 
-int lowerClawDelay = 500; 
+const int raiseClawDelay = 250; 
+const int openClawDelay = 1000; 
+const int lowerClawDelay = 500; 
 
-int bridge1Delay = 7500; 
-int bridge2Delay = 7500; 
-int rotateDelay = 2500; 
+const int bridge1Delay = 7500; 
+const int bridge2Delay = 7500; 
+const int rotateDelay = 2500; 
 
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
 Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);

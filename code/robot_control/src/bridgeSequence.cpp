@@ -2,10 +2,10 @@
 #include "bridgeSequence.h"
 
 BridgeSequence::BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay) { 
-    bridge = bridge; 
-    bridge1Delay = bridge1Delay;
-    bridge2Delay = bridge2Delay;
-    rotateDelay = rotateDelay;
+    this->bridge = bridge; 
+    this->bridge1Delay = bridge1Delay;
+    this->bridge2Delay = bridge2Delay;
+    this->rotateDelay = rotateDelay;
 }
 
 void BridgeSequence::poll() { 
