@@ -18,7 +18,12 @@ I need to hit up Amar to find out if it's better practice to set constants in a 
 
 Files and general description 
 --- 
-1. `bridge.cpp/bridge.h`: Reads edge QRDs and determines when to drop/raise bridges.
+1. `bridge.cpp/bridge.h`: Bridge object, detects edge, raise/lower bridges.
+2. `bridgeSequence.cpp/bridgeSequence.h`: State logic for when to deploy bridges
+3. `claw.cpp/claw.h`: Claw object, push button trigger, clamp closing/opening, arm raising/lowering. 
+4. `clawSequence.cpp/clawSequence.h`: State logic for the process of retrieving an ewok (from detection to droppin' it hot in the basket)
+5. `main.cpp`: Constants set, objects created, sequences called in the main control loop.
+6. `README.md` that's this thing. If you make changes to the code/logic or if we make a big decision, add in a section with an explanation. 
 
 TODO
 ---
@@ -28,6 +33,7 @@ TODO
 3. Write `Gate (IR) sequence` (i.e set flag to keep left claw raised, raise both claws going through gate). **Note**: This means `clawSequence` will probably need to be updated to chillax while the gateSequence is going on. 
 4. Need to think about how motor control is going to get passed around, i.e from tape control to edge detection to bridge deployment to resuming. And the again, when second edge is detected, rotation, bride deployed, edge detection initiated. (control flow diagram will help with this)
 5. Figure out how to set up the `menu system` (how to navigate, how to set variables) using the OLED and then start up the contorl loop. Lower priority for now, setting up base of architecture first. 
+6. Convert types to standard definnition (i.e 8-bit unsigned integer -> uint8_t)
 
 Lastly, thank you for reading. 
 
