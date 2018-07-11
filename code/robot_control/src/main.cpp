@@ -22,26 +22,41 @@ constexpr int bridge2_pin = PA8;
 constexpr int leftEdgeQRD = PA11; 
 constexpr int rightEdgeQRD = PA12; 
 
+// Claw delay times
 constexpr int raiseClawDelay = 250; 
 constexpr int openClawDelay = 1000; 
 constexpr int lowerClawDelay = 500; 
 
+// Bridge lowering delaying times
 constexpr int bridge1Delay = 7500; 
 constexpr int bridge2Delay = 7500; 
 constexpr int rotateDelay = 2500; 
 
+// Motor wait times while lowering bridge 
+constexpr int bridge1WaitTime = 2500; 
+constexpr int bridge2WaitTime = 2500; 
+
+// How long to run motor in reverse when edge detected 
+constexpr int reverseTime1 = 500; 
+constexpr int reverseTime2 = 500; 
+
+// Motor control
 Motor leftMotor = Motor(left_motor_pin);
 Motor rightMotor = Motor(right_motor_pin); 
+MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge1WaitTime, bridge2WaitTime, reverseTime1, reverseTime2); 
 
+// Claws
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
 Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
 ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
 ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
 
+// Bridge deployment
 Bridge bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD);
 BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
 
-unsigned long prevTime = 0; 
+// IR Beacon TODO
+// Basket sequence TODO
 
 void setup() {
     Serial.begin(9600); 
