@@ -3,11 +3,12 @@
 
 class Motor { 
     private: 
-        int motorPin; 
+        int motorPin1;
+        int motorPin2;  
 
     public: 
         Motor();
-        Motor(int motorPin); 
+        Motor(int motorPin1, int motorPin2); 
         void forward(int speed); 
         void reverse(int speed); 
 };

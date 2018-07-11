@@ -15,6 +15,7 @@ class MotorControl {
         int bridge2WaitTime; 
 
         // Modifiable PID values
+        int gain; 
         int pVal; 
         int iVal; 
         int dVal; 

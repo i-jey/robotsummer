@@ -1,8 +1,10 @@
 #include "includes.h"
 
 // Motor pins 
-constexpr int left_motor_pin = PA0; 
-constexpr int right_motor_pin = PA1; 
+constexpr int left_motor_pin1 = PA0; 
+constexpr int left_motor_pin2 = PA1; 
+constexpr int right_motor_pin1 = PA2;
+constexpr int right_motor_pin2 = PA3;  
 
 // Left claw pins 
 constexpr int left_clamp_pin = PA1; 
@@ -41,8 +43,8 @@ constexpr int reverseTime1 = 500;
 constexpr int reverseTime2 = 500; 
 
 // Motor control
-Motor leftMotor = Motor(left_motor_pin);
-Motor rightMotor = Motor(right_motor_pin); 
+Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
+Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
 MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge1WaitTime, bridge2WaitTime, reverseTime1, reverseTime2); 
 
 // Claws
