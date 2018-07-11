@@ -1,30 +1,37 @@
 #include "includes.h"
 
+// Motor pins 
+constexpr int left_motor_pin = PA0; 
+constexpr int right_motor_pin = PA1; 
+
 // Left claw pins 
-const int left_clamp_pin = PA1; 
-const int left_arm_pin = PA2; 
-const int left_push_button = PA3; 
+constexpr int left_clamp_pin = PA1; 
+constexpr int left_arm_pin = PA2; 
+constexpr int left_push_button = PA3; 
 
 // Right claw pins
-const int right_clamp_pin = PB0; 
-const int right_arm_pin = PB1;
-const int right_push_button = PB6;  
+constexpr int right_clamp_pin = PB0; 
+constexpr int right_arm_pin = PB1;
+constexpr int right_push_button = PB6;  
 
 // Bridge servos 
-const int bridge1_pin = PA7; 
-const int bridge2_pin = PA8; 
+constexpr int bridge1_pin = PA7; 
+constexpr int bridge2_pin = PA8; 
 
 // Edge QRDs
-const int leftEdgeQRD = PA11; 
-const int rightEdgeQRD = PA12; 
+constexpr int leftEdgeQRD = PA11; 
+constexpr int rightEdgeQRD = PA12; 
 
-const int raiseClawDelay = 250; 
-const int openClawDelay = 1000; 
-const int lowerClawDelay = 500; 
+constexpr int raiseClawDelay = 250; 
+constexpr int openClawDelay = 1000; 
+constexpr int lowerClawDelay = 500; 
 
-const int bridge1Delay = 7500; 
-const int bridge2Delay = 7500; 
-const int rotateDelay = 2500; 
+constexpr int bridge1Delay = 7500; 
+constexpr int bridge2Delay = 7500; 
+constexpr int rotateDelay = 2500; 
+
+Motor leftMotor = Motor(left_motor_pin);
+Motor rightMotor = Motor(right_motor_pin); 
 
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
 Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);

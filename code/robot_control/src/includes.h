@@ -7,6 +7,7 @@
 #include <OLED_I2C.h>
 
 // header files 
+#include "motor.h"
 #include "claw.h" 
 #include "clawSequence.h"
 #include "bridge.h"
