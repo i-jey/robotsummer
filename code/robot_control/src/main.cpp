@@ -6,9 +6,9 @@ const int left_arm_pin = PA2;
 const int left_push_button = PA3; 
 
 // Right claw pins
-const int right_clamp_pin = PA4; 
-const int right_arm_pin = PA5;
-const int right_push_button = PA6;  
+const int right_clamp_pin = PB0; 
+const int right_arm_pin = PB1;
+const int right_push_button = PB6;  
 
 // Bridge servos 
 const int bridge1_pin = PA7; 
@@ -38,6 +38,7 @@ unsigned long prevTime = 0;
 
 void setup() {
     Serial.begin(9600); 
+    pinMode(right_push_button, INPUT); 
 }
 
 void loop() {
