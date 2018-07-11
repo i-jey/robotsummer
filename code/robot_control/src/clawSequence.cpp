@@ -10,12 +10,17 @@ ClawSequence::ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDel
 
 void ClawSequence::reset() { 
     state = 0; 
-
-    // Poll button every 50ms
     delay = millis(); 
 }
 
 void ClawSequence::poll() { 
+    /* Define claw states
+    *  0 : Polling push buttons, advances to state=1 after raiseDelay if button detected.
+    *  1 : Raises arm, advances to state=2 after raiseDelay
+    *  2 : Opens arm (to drop Browok in basket), advances to state=3 after lowerDelay
+    *  3 : Lowers arm, resets to state=0 (polling push buttons)
+    */
+
     if (millis() < delay) { 
         return; 
     }
@@ -45,7 +50,19 @@ void ClawSequence::poll() {
             if (arm.lower()) { 
                 reset(); 
             }
+        case 10:
+            arm.raise();  
+            break; 
         default: 
             break; 
     }; 
+}
+
+void ClawSequence::stateOverride(int specialState) {
+    /*  Manual state override for special sequences 
+    *   Should be used with care. Allows us to specify unique claw behaviour.
+    *   Define unique states: 
+    *   10 : Raise arm and keep arm raised while in this state
+    */
+    state = specialState;
 }

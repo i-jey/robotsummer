@@ -15,6 +15,7 @@ class ClawSequence {
         ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay); 
         void reset(); 
         void poll(); 
+        void stateOverride(int specialState); 
 };
 
 #endif

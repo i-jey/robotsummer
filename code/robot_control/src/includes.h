@@ -8,6 +8,7 @@
 
 // header files 
 #include "motor.h"
+#include "motorControlSequence.h"
 #include "claw.h" 
 #include "clawSequence.h"
 #include "bridge.h"
