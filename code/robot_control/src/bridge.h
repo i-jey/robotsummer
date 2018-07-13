@@ -12,7 +12,7 @@ class Bridge {
         Bridge(); 
         Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin); 
         bool detectEdge(); 
-        bool lowerBridge1(); 
+        void lowerBridge1(int angle); 
         void raiseBridge1(); 
         bool lowerBoth(); 
         void raiseBoth(); 

@@ -9,6 +9,7 @@ class BridgeSequence {
         int bridge1Delay; 
         int bridge2Delay; 
         int rotateDelay; 
+        int angle; 
         Bridge bridge; 
 
     public: 

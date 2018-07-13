@@ -1,6 +1,9 @@
 #ifndef INCLUDES_H 
 #define INCLUDES_H 
 
+// Global variables 
+extern int temp; 
+
 // libraries 
 #include <Arduino.h>
 #include <Servo.h>

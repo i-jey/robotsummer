@@ -1,10 +1,14 @@
 #include "includes.h"
 
+///////// GLOBAL VARIABLE INITIALIZATION ///////// 
+int temp = 0; 
+
+///////// PINS ///////// 
 // Motor pins 
-constexpr int left_motor_pin1 = PA0; 
-constexpr int left_motor_pin2 = PA1; 
-constexpr int right_motor_pin1 = PA2;
-constexpr int right_motor_pin2 = PA3;  
+constexpr int left_motor_pin1 = PA2; 
+constexpr int left_motor_pin2 = PA3; 
+constexpr int right_motor_pin1 = PA0;
+constexpr int right_motor_pin2 = PA1;  
 
 // Left claw pins 
 constexpr int left_clamp_pin = PA1; 
@@ -21,9 +25,10 @@ constexpr int bridge1_pin = PA7;
 constexpr int bridge2_pin = PA8; 
 
 // Edge QRDs
-constexpr int leftEdgeQRD = PA11; 
-constexpr int rightEdgeQRD = PA12; 
+constexpr int leftEdgeQRD = PA5; 
+constexpr int rightEdgeQRD = PA6; 
 
+///////// DELAY TIMES /////////
 // Claw delay times
 constexpr int raiseClawDelay = 250; 
 constexpr int openClawDelay = 1000; 
@@ -34,18 +39,28 @@ constexpr int bridge1Delay = 7500;
 constexpr int bridge2Delay = 7500; 
 constexpr int rotateDelay = 2500; 
 
-// Motor wait times while lowering bridge 
-constexpr int bridge1WaitTime = 2500; 
-constexpr int bridge2WaitTime = 2500; 
-
 // How long to run motor in reverse when edge detected 
-constexpr int reverseTime1 = 500; 
-constexpr int reverseTime2 = 500; 
+constexpr int reverseTime1 = 1500; 
+constexpr int reverseTime2 = 1500; 
 
+// Motor wait times while lowering bridge 
+constexpr int bridge1WaitTime = 7500; 
+constexpr int bridge2WaitTime = 7500; 
+
+// How long to drive forward after dropping bridge 
+constexpr int forwardDriveTime1 = 2000; 
+constexpr int forwardDriveTime2 = 2000; 
+
+///////// OTHER CONSTANTS /////////
+int motorStartState = 1; 
+int motorStartSpeed = 150; 
+
+///////// MODULES AND SEQUENCE INITIALIZATION /////////
 // Motor control
 Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge1WaitTime, bridge2WaitTime, reverseTime1, reverseTime2); 
+MotorControl motorControl = MotorControl(motorStartState, motorStartSpeed, leftMotor, rightMotor, 
+    reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
 // Claws
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
@@ -60,13 +75,31 @@ BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Dela
 // IR Beacon TODO
 // Basket sequence TODO
 
+constexpr int pot = PB1; 
+int prevTime = 0; 
+
 void setup() {
     Serial.begin(9600); 
     pinMode(right_push_button, INPUT); 
+    pinMode(pot, INPUT); 
 }
 
 void loop() {
-    leftClaw.poll(); 
-    rightClaw.poll(); 
-    bridgeSequence.poll(); 
+    // leftClaw.poll(); 
+    // rightClaw.poll(); 
+    // bridgeSequence.poll(); 
+    // float newSpeed = analogRead(pot) * 255 / 4096; 
+    // Serial.println(newSpeed);
+    // motorControl.updateSpeed(newSpeed);  
+    // bridgeSequence.poll(); 
+    // motorControl.poll(); 
+    // bridge.detectEdge();
+    // bridge.lowerBridge1();  
+    // delay(5000); 
+    // bridge.raiseBridge1(); 
+    // delay(5000); 
+    // if (temp == 1) { 
+    //     motorControl.stateOverride(10, 250); 
+    //     temp = 0; 
+    // }
 }

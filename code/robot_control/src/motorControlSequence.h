@@ -9,10 +9,12 @@ class MotorControl {
         Motor leftMotor; 
         Motor rightMotor; 
         int speed; 
-        int reverse1Time; 
-        int reverse2Time; 
+        int reverseTime1; 
+        int reverseTime2; 
         int bridge1WaitTime; 
         int bridge2WaitTime; 
+        int forwardDriveTime1; 
+        int forwardDriveTime2; 
 
         // Modifiable PID values
         int gain; 
@@ -21,12 +23,14 @@ class MotorControl {
         int dVal; 
 
     public: 
-        MotorControl(Motor &leftMotor, Motor &rightMotor, int bridge1WaitTime, int bridge2WaitTime, 
-                        int reverse1Time, int reverse2Time); 
+        MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
+                int reverse1Time, int reverse2Time, int bridge1WaitTime, int bridge2WaitTime,
+                int forwardDriveTime1, int forwardDriveTime2); 
         void reset(); 
         void poll(); 
-        void stateOverride(int specialState); 
+        void stateOverride(int specialState, int delay); 
         void updateSpeed(int newSpeed); 
+        void updateGain(int newGain); 
         void updateP(int newP); 
         void updateI(int newI); 
         void updateD(int newD); 
