@@ -8,7 +8,8 @@ class MotorControl {
         int state; 
         Motor leftMotor; 
         Motor rightMotor; 
-        int speed; 
+        int speedLeft;
+        int speedRight;
         int reverseTime1; 
         int reverseTime2; 
         int bridge1WaitTime; 
@@ -30,6 +31,8 @@ class MotorControl {
         void poll(); 
         void stateOverride(int specialState, int delay); 
         void updateSpeed(int newSpeed); 
+        void updateSpeedLeft(int newSpeed);
+        void updateSpeedRight(int newSpeed);
         void updateGain(int newGain); 
         void updateP(int newP); 
         void updateI(int newI); 

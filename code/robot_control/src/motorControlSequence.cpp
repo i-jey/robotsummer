@@ -8,7 +8,8 @@ MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMoto
     // FYI, the ampersand &, is a pointer (i.e as opposed to making a copy of the object
     // this means we will be referencing the actual object that was passed in)
     this->state = startingState; 
-    this->speed = startingSpeed;
+    this->speedLeft = startingSpeed;
+    this->speedRight = startingSpeed;
 
     this->leftMotor = leftMotor; 
     this->rightMotor = rightMotor; 
@@ -47,15 +48,15 @@ void MotorControl::poll() {
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
-            leftMotor.forward(speed); 
-            rightMotor.forward(speed); 
+            leftMotor.forward(speedLeft); 
+            rightMotor.forward(speedRight); 
             break; 
         case 1: 
             // This state is only meant for basic testing 
-            leftMotor.reverse(speed); 
-            rightMotor.reverse(speed); 
+            leftMotor.reverse(speedLeft); 
+            rightMotor.reverse(speedRight); 
             break; 
-        case 2: 
+        case 2:
             // TODO 
             // ayy lmao, write soAme PID functions, call them here
             break; 
@@ -81,8 +82,8 @@ void MotorControl::poll() {
             break;
         case 12: 
             // Reverse to drop bridge 
-            leftMotor.reverse(speed); 
-            leftMotor.reverse(speed); 
+            leftMotor.reverse(speedLeft); 
+            leftMotor.reverse(speedRight); 
             Serial.println("Back up and drop it like it's hot"); 
             if (millis() > delay) { 
                 state++; 
@@ -137,7 +138,16 @@ void MotorControl::stateOverride(int specialState, int delay) {
 }
 
 void MotorControl::updateSpeed(int newSpeed) { 
-    speed = newSpeed; 
+    speedLeft = newSpeed; 
+    speedRight = newSpeed;
+}
+
+void MotorControl::updateSpeedLeft(int newSpeed) {
+    speedLeft = newSpeed;
+}
+
+void MotorControl::updateSpeedRight(int newSpeed) {
+    speedRight = newSpeed;
 }
 
 void MotorControl::updateGain(int newGain) { 
