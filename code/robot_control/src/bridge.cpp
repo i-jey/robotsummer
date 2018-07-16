@@ -4,11 +4,13 @@
 constexpr int OFF_EDGE_THRESHOLD = 400; 
 
 Bridge::Bridge(){}; // Default constructor otherwise C++ whines
-Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin) { 
+Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int QRD_THRESHOLD) { 
     bridgeServo1.attach(bridgePin1); 
     bridgeServo2.attach(bridgePin2); 
     this->QRDLeft = QRDLeftPin; 
     this->QRDRight = QRDRightPin;
+    this->QRD_THRESHOLD = QRD_THRESHOLD; 
+    bridgeServo1.write(140); 
 }
 
 bool Bridge::detectEdge() { 
