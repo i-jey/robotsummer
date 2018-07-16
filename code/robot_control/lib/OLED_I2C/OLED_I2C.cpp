@@ -37,6 +37,7 @@
 #include "hardware/arm/HW_STM32.h"
 #endif
 
+OLED::OLED(){}; 
 OLED::OLED(uint8_t data_pin, uint8_t sclk_pin, uint8_t rst_pin)
 { 
 	_sda_pin = data_pin;

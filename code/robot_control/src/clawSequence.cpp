@@ -1,6 +1,7 @@
 #include "includes.h"
 #include "clawSequence.h"
 
+ClawSequence::ClawSequence(){};
 ClawSequence::ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay) { 
     this->arm = arm; 
     this->raiseDelay = raiseDelay; 

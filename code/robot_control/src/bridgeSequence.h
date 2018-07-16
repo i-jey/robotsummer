@@ -13,6 +13,7 @@ class BridgeSequence {
         Bridge bridge; 
 
     public: 
+        BridgeSequence(); 
         BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay); 
         void reset(); 
         void poll(); 

@@ -1,12 +1,13 @@
 #include "includes.h"
 #include "bridgeSequence.h"
 
+BridgeSequence::BridgeSequence(){};
 BridgeSequence::BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay) { 
     this->bridge = bridge; 
     this->bridge1Delay = bridge1Delay;
     this->bridge2Delay = bridge2Delay;
     this->rotateDelay = rotateDelay;
-    angle = 0; 
+    this->angle = 140; 
 }
 
 void BridgeSequence::poll() { 
@@ -17,17 +18,17 @@ void BridgeSequence::poll() {
     switch(state) { 
         case 0: 
             if (bridge.detectEdge()) { 
-                angle++; 
+                angle--; 
                 bridge.lowerBridge1(angle); 
-                delay = millis() + 10; 
+                delay = millis() + 5; 
                 temp = 1; 
             }
+            delay = millis() + 50; 
             // change to variable in a sec
             if (angle == 47) { 
                 state++; 
                 delay = millis() + bridge1Delay;
             }
-            delay = millis() + 50; 
             break; 
         case 1: 
             bridge.raiseBridge1(); 

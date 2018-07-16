@@ -24,8 +24,9 @@ class MotorControl {
         int dVal; 
 
     public: 
+        MotorControl();
         MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
-                int reverse1Time, int reverse2Time, int bridge1WaitTime, int bridge2WaitTime,
+                int p, int i, int d, int reverse1Time, int reverse2Time, int bridge1WaitTime, int bridge2WaitTime,
                 int forwardDriveTime1, int forwardDriveTime2); 
         void reset(); 
         void poll(); 

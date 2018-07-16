@@ -1,9 +1,16 @@
 #include "includes.h"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
 ///////// GLOBAL VARIABLE INITIALIZATION ///////// 
 int temp = 0; 
 
 ///////// PINS ///////// 
+// Menu pins
+constexpr int btn = PB12; 
+constexpr int incrementBtn = PB13; 
+constexpr int pot = PB1; 
+constexpr int startBtn = PB14; 
+
 // Motor pins 
 constexpr int left_motor_pin1 = PA2; 
 constexpr int left_motor_pin2 = PA3; 
@@ -28,80 +35,178 @@ constexpr int bridge2_pin = PA8;
 constexpr int leftEdgeQRD = PA5; 
 constexpr int rightEdgeQRD = PA6; 
 
-///////// DELAY TIMES /////////
-// Claw delay times
-constexpr int raiseClawDelay = 250; 
-constexpr int openClawDelay = 1000; 
-constexpr int lowerClawDelay = 500; 
+///////// CONSTANTS BY MODULE /////////
+// Claw 
+int raiseClawDelay = 250; 
+int openClawDelay = 1000; 
+int lowerClawDelay = 500; 
 
-// Bridge lowering delaying times
-constexpr int bridge1Delay = 7500; 
-constexpr int bridge2Delay = 7500; 
-constexpr int rotateDelay = 2500; 
+// Bridge 
+int bridge1Delay = 7500; 
+int bridge2Delay = 7500; 
+int rotateDelay = 2500; 
+int edge_qrd_threshold = 400; 
 
+// Motor
 // How long to run motor in reverse when edge detected 
-constexpr int reverseTime1 = 1500; 
-constexpr int reverseTime2 = 1500; 
-
+int reverseTime1 = 1500; 
+int reverseTime2 = 1500; 
 // Motor wait times while lowering bridge 
-constexpr int bridge1WaitTime = 7500; 
-constexpr int bridge2WaitTime = 7500; 
-
+int bridge1WaitTime = 7500; 
+int bridge2WaitTime = 7500; 
 // How long to drive forward after dropping bridge 
-constexpr int forwardDriveTime1 = 2000; 
-constexpr int forwardDriveTime2 = 2000; 
-
-///////// OTHER CONSTANTS /////////
+int forwardDriveTime1 = 2000; 
+int forwardDriveTime2 = 2000; 
+// PID constants
+int p = 50; 
+int i = 0; 
+int d = 37; 
+int pid_qrd_threshold = 200; 
 int motorStartState = 0; 
-int motorStartSpeed = 150; 
+int defaultSpeed = 150; 
 
-///////// MODULES AND SEQUENCE INITIALIZATION /////////
+
+int constants[] = {
+    // Motor
+    p, i, d, defaultSpeed, pid_qrd_threshold, motorStartState, 
+    // Claw 
+    raiseClawDelay, openClawDelay, lowerClawDelay, 
+    // Bridge 
+    reverseTime1, bridge1Delay, forwardDriveTime1, 
+    reverseTime2, rotateDelay, bridge2Delay, forwardDriveTime2,
+    // Basket
+
+}; 
+String constantNames[] = {
+    // Motor
+    "P-constant", "I-constant", "D-constant", "Default speed", "PID-QRD Threshold",  "Motor state",
+    // Claw 
+    "Raise delay", "Clamp open delay", "Lower arm delay", "Claw state", 
+    //
+};
+///////// MODULES AND SEQUENCE DECLARATION /////////
 // Motor control
-Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
-Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-MotorControl motorControl = MotorControl(motorStartState, motorStartSpeed, leftMotor, rightMotor, 
-    reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
+Motor leftMotor;
+Motor rightMotor;
+MotorControl motorControl;
 
 // Claws
-Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
-ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
-ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+Arm leftArm;
+Arm rightArm;
+ClawSequence leftClaw;
+ClawSequence rightClaw;
 
 // Bridge deployment
-Bridge bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD);
-BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
+Bridge bridge; 
+BridgeSequence bridgeSequence;
 
 // IR Beacon TODO
 // Basket sequence TODO
 
-constexpr int pot = PB1; 
-int prevTime = 0; 
+// Initialize display
+OLED myOled(PB7, PB6, 8); 
+extern uint8_t SmallFont[]; 
 
 void setup() {
     Serial.begin(9600); 
     pinMode(right_push_button, INPUT); 
+    pinMode(btn, INPUT_PULLUP); 
+    pinMode(incrementBtn, INPUT_PULLUP);
     pinMode(pot, INPUT); 
+    pinMode(startBtn, INPUT_PULLDOWN); 
+
+    myOled.begin(); 
+    myOled.setFont(SmallFont); 
 }
 
+bool editVal = false; 
+void displayMenu() {
+    int potVal = analogRead(pot); 
+    int numConstants = sizeof(constants) / sizeof(constants[0]); 
+    float incrementVal = 4096 / float(numConstants); 
+    if (!digitalRead(btn)) {editVal = !editVal;}
+    int btnVal = 0; 
+
+    String optionName; 
+
+    // Display raw analog value 
+    myOled.printNumI(potVal, RIGHT, 0); 
+
+    // Option #
+    myOled.print("/", 5, 0); 
+    myOled.printNumI(numConstants, 10, 0);
+
+    // Display increment value
+    myOled.print("Increment: ", 0, 10); 
+    myOled.printNumI(incrementVal, RIGHT, 10);
+
+    // Choose options
+    for (int x = 1; x <= numConstants; x++) { 
+        if (potVal < incrementVal*x) {
+            optionName = constantNames[x-1]; 
+            myOled.printNumI(x, 0, 0); 
+            myOled.print(optionName, 0, 20); 
+            myOled.printNumI(constants[x-1], RIGHT, 20); 
+            myOled.print("View", RIGHT, 57); 
+            
+            while (editVal) { 
+                delay(100); 
+                if (!digitalRead(btn)){editVal=false;}
+                if (!digitalRead(incrementBtn)){btnVal++;}
+                potVal = analogRead(pot); 
+                constants[x-1] = potVal + btnVal; 
+
+                myOled.clrScr();
+                myOled.print(optionName, 0, 20);  
+                myOled.printNumI(constants[x-1], RIGHT, 20);  
+                myOled.print("Edit", RIGHT, 57); 
+                myOled.update(); 
+            }
+            return; 
+        }
+    }
+}
+
+bool start = true; 
+bool firstRun = true; 
 void loop() {
-    // leftClaw.poll(); 
-    // rightClaw.poll(); 
-    // bridgeSequence.poll(); 
-    float newSpeed = analogRead(pot) * 255 / 4096; 
-    // Serial.println(newSpeed);
-    motorControl.updateSpeedLeft(newSpeed);  
-    // bridgeSequence.poll(); 
-    motorControl.poll(); 
-    Serial.println(newSpeed);
-    // bridge.detectEdge();
-    // bridge.lowerBridge1();  
-    // delay(5000); 
-    // bridge.raiseBridge1(); 
-    // delay(5000); 
-    // if (temp == 1) { 
-    //     motorControl.stateOverride(10, 250); 
-    //     temp = 0; 
-    // }
-}
+    if (!start) { 
+        // Menu 
+        start = digitalRead(startBtn); 
+        myOled.clrScr(); 
+        displayMenu(); 
+        myOled.update(); 
+        delay(100); 
+    }
+    else {  
+        if (firstRun) { 
+            firstRun = false; 
+            ///////// MODULES AND SEQUENCE INITIALIZATION /////////
+            // Motor control
+            leftMotor = Motor(left_motor_pin1, left_motor_pin2);
+            rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
+            motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, p, i, d,
+                reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
+            // Claws
+            leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
+            rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
+            leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+            rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+
+            // Bridge deployment
+            bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD, edge_qrd_threshold);
+            bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
+
+            // IR Beacon TODO
+            // Basket sequence TODO
+
+        }
+        // Control loops
+        else { 
+            motorControl.poll(); 
+            leftClaw.poll(); 
+            rightClaw.poll(); 
+        }
+    }
+}
