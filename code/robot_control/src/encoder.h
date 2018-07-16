@@ -2,7 +2,7 @@
 #define ENCODER_H
 
 constexpr int CW = 1;
-constexpr int CCW = -1; 
+constexpr int CCW = -1;
 
 void encoderInterruptHandlerLeft1(){
     
@@ -15,23 +15,34 @@ class Encoder {
         int encoderLeftPin2;
         int encoderRightPin1;
         int encoderRightPin2;
-        volatile int countLeft1;
-        volatile int countLeft2;
-        volatile int countRight1;
-        volatile 
-        int prevTime;
-        int direction;
-        float speed;
+        int countLeft1;
+        int countLeft2;
+        int countRight1;
+        int countRight2; 
+        int prevStateLeft1;
+        int prevStateLeft2;
+        int prevStateRight1;
+        int prevStateRight2;
+        int prevTimeLeft;
+        int prevTimeRight;
+        float distanceLeft;
+        float distanceRight;
+        float speedLeft;
+        float speedRight;
+        int directionLeft;
+        int directionRight;
         
     public:
         Encoder();
-        Encoder(int encoderPin1, int encoderPin2);
-        void encoderInterruptHandler1();
-        void encoderInterruptHandler2();
-        float getSpeed();
-        bool getDirection();
+        Encoder(int encoderLeftPin1, int encoderLeftPin2, int encoderRightPin1, int encoderRightPin2);
+        void poll();
+        float getDistanceLeft();
+        float getDistanceRight();
+        float getSpeedLeft();
+        float getSpeedRight();
+        int getDirectionLeft();
+        int getDirectionRight();
+        float getSpeedOffset();
 };
-
-
 
 #endif

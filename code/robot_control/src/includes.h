@@ -3,6 +3,7 @@
 
 // Global variables 
 extern int temp; 
+constexpr float wheelDiameter = 6.14;
 
 // libraries 
 #include <Arduino.h>
