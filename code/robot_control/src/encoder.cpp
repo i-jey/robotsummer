@@ -21,6 +21,8 @@ void Encoder::poll(){
     int currentStateRight1 = digitalRead(encoderRightPin1);
     int currentStateRight2 = digitalRead(encoderRightPin2);
 
+    int currentTime = millis();
+
     if(currentStateLeft1 == HIGH && currentStateLeft1 != prevStateLeft1){
         countLeft1++;
         prevStateLeft1 = currentStateLeft1;
@@ -37,6 +39,14 @@ void Encoder::poll(){
         countRight2++;
         prevStateRight2 = currentStateRight2;
     }
+    if((countLeft1 == countLeft2) >= 6){
+        speedLeft = countLeft1/(currentTime-prevTimeLeft);
+        prevTimeLeft = currentTime;
+    }
+    if((countRight1 == countRight2) >= 6){
+        speedRight = countRight1/(currentTime-prevTimeRight);
+        prevTimeRight = currentTime;
+    }
 }
 
 float Encoder::getDistanceLeft(){
@@ -50,38 +60,18 @@ float Encoder::getDistanceLeft(){
 
 float Encoder::getDistanceRight(){
     if(getDirectionRight() == CW){
-        distanceRight = countRight1*wheelDiameter;
+        distanceRight = 3.14*countRight1*wheelDiameter/24;
     }else if(getDirectionRight() == CCW){
-        distanceRight = countRight2*wheelDiameter;
+        distanceRight = 3.14*countRight2*wheelDiameter/24;
     }
     return distanceRight;
 }
 
 float Encoder::getSpeedLeft(){
-    int currentTime = millis();
-    int timeDifference = prevTimeLeft - currentTime;
-    
-    if(getDirectionLeft() == CW){
-        speedLeft = countLeft1/timeDifference;
-    }else if(getDirectionLeft() == CCW){
-        speedLeft = countLeft2/timeDifference;
-    }
-    prevTimeLeft = currentTime;
-
     return speedLeft;
 }
 
 float Encoder::getSpeedRight(){
-    int currentTime = millis();
-    int timeDifference = prevTimeRight - currentTime;
-
-    if(getDirectionRight() == CW){
-        speedRight = countRight1/timeDifference;
-    }else if(getDirectionRight() == CCW){
-        speedRight = countRight2/timeDifference;
-    }
-    prevTimeRight = currentTime;
-
     return speedRight;
 }
 
