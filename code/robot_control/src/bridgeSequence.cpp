@@ -1,6 +1,7 @@
 #include "includes.h"
 #include "bridgeSequence.h"
 
+BridgeSequence::BridgeSequence(){};
 BridgeSequence::BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay) { 
     this->bridge = bridge; 
     this->bridge1Delay = bridge1Delay;

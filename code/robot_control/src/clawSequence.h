@@ -12,6 +12,7 @@ class ClawSequence {
         Arm arm; 
 
     public: 
+        ClawSequence(); 
         ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay); 
         void reset(); 
         void poll(); 

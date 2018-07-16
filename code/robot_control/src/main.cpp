@@ -84,6 +84,24 @@ String constantNames[] = {
     "Raise delay", "Clamp open delay", "Lower arm delay", "Claw state", 
     //
 };
+///////// MODULES AND SEQUENCE DECLARATION /////////
+// Motor control
+Motor leftMotor;
+Motor rightMotor;
+MotorControl motorControl;
+
+// Claws
+Arm leftArm;
+Arm rightArm;
+ClawSequence leftClaw;
+ClawSequence rightClaw;
+
+// Bridge deployment
+Bridge bridge; 
+BridgeSequence bridgeSequence;
+
+// IR Beacon TODO
+// Basket sequence TODO
 
 // Initialize display
 OLED myOled(PB7, PB6, 8); 
@@ -165,20 +183,20 @@ void loop() {
             firstRun = false; 
             ///////// MODULES AND SEQUENCE INITIALIZATION /////////
             // Motor control
-            Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
-            Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-            MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
+            leftMotor = Motor(left_motor_pin1, left_motor_pin2);
+            rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
+            motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
                 reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
             // Claws
-            Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
-            Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
-            ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
-            ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+            leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
+            rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
+            leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+            rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
 
             // Bridge deployment
-            Bridge bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD, edge_qrd_threshold);
-            BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
+            bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD, edge_qrd_threshold);
+            bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
 
             // IR Beacon TODO
             // Basket sequence TODO
@@ -186,7 +204,9 @@ void loop() {
         }
         // Control loops
         else { 
-            
+            motorControl.poll(); 
+            leftClaw.poll(); 
+            rightClaw.poll(); 
         }
     }
 }
