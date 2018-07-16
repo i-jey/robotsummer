@@ -1,5 +1,4 @@
-#include "includes.h" 
-#include "motor.h" 
+#include "includes.h"  
 
 Motor::Motor(){}; // Default constructor 
 

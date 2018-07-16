@@ -16,5 +16,6 @@ extern int temp;
 #include "clawSequence.h"
 #include "bridge.h"
 #include "bridgeSequence.h"
+#include "encoder.h"
 
 #endif 

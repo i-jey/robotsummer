@@ -193,12 +193,17 @@ void loop() {
     // leftClaw.poll(); 
     // rightClaw.poll(); 
     // bridgeSequence.poll(); 
-    // float newSpeed = analogRead(pot) * 255 / 4096; 
+    float newSpeed = analogRead(pot) * 255 / 4096; 
     // Serial.println(newSpeed);
-    // motorControl.updateSpeed(newSpeed);  
+    motorControl.updateSpeedLeft(newSpeed);  
     // bridgeSequence.poll(); 
-    // motorControl.poll(); 
-    // // bridge.detectEdge();
+    motorControl.poll(); 
+    Serial.println(newSpeed);
+    // bridge.detectEdge();
+    // bridge.lowerBridge1();  
+    // delay(5000); 
+    // bridge.raiseBridge1(); 
+    // delay(5000); 
     // if (temp == 1) { 
     //     motorControl.stateOverride(10, 250); 
     //     temp = 0; 
