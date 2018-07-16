@@ -84,25 +84,6 @@ String constantNames[] = {
     "Raise delay", "Clamp open delay", "Lower arm delay", "Claw state", 
     //
 };
-///////// MODULES AND SEQUENCE INITIALIZATION /////////
-// Motor control
-Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
-Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
-    reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
-
-// Claws
-Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
-ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
-ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
-
-// Bridge deployment
-Bridge bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD, edge_qrd_threshold);
-BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
-
-// IR Beacon TODO
-// Basket sequence TODO
 
 // Initialize display
 OLED myOled(PB7, PB6, 8); 
@@ -168,7 +149,8 @@ void displayMenu() {
     }
 }
 
-bool start = false; 
+bool start = true; 
+bool firstRun = true; 
 void loop() {
     if (!start) { 
         // Menu 
@@ -178,34 +160,33 @@ void loop() {
         myOled.update(); 
         delay(100); 
     }
-    else { 
-        // Check if first time, if so instantiate objects 
+    else {  
+        if (firstRun) { 
+            firstRun = false; 
+            ///////// MODULES AND SEQUENCE INITIALIZATION /////////
+            // Motor control
+            Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
+            Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
+            MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
+                reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
+
+            // Claws
+            Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
+            Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button);
+            ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+            ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+
+            // Bridge deployment
+            Bridge bridge = Bridge(bridge1_pin, bridge2_pin, leftEdgeQRD, rightEdgeQRD, edge_qrd_threshold);
+            BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, bridge2Delay, rotateDelay);
+
+            // IR Beacon TODO
+            // Basket sequence TODO
+
+        }
         // Control loops
+        else { 
+            
+        }
     }
-    myOled.clrScr(); 
-    // myOled.printNumI(digitalRead(btn), 0, 0);
-    // myOled.printNumI(analogRead(pot), 0, 10);  
-    displayMenu(); 
-    myOled.update(); 
-    delay(100); 
-    // menu.display(); 
-    // delay(100);     
-    // leftClaw.poll(); 
-    // rightClaw.poll(); 
-    // bridgeSequence.poll(); 
-    float newSpeed = analogRead(pot) * 255 / 4096; 
-    // Serial.println(newSpeed);
-    motorControl.updateSpeedLeft(newSpeed);  
-    // bridgeSequence.poll(); 
-    motorControl.poll(); 
-    Serial.println(newSpeed);
-    // bridge.detectEdge();
-    // bridge.lowerBridge1();  
-    // delay(5000); 
-    // bridge.raiseBridge1(); 
-    // delay(5000); 
-    // if (temp == 1) { 
-    //     motorControl.stateOverride(10, 250); 
-    //     temp = 0; 
-    // }
 }
