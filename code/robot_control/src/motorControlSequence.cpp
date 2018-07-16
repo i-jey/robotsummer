@@ -2,7 +2,7 @@
 #include "motorControlSequence.h"
 
 MotorControl::MotorControl(){};
-MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
+MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, int p, int i, int d,
     int reverseTime1, int reverseTime2, int bridge1WaitTime, int bridge2WaitTime, 
     int forwardDriveTime1, int forwardDriveTime2) { 
 

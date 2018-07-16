@@ -185,7 +185,7 @@ void loop() {
             // Motor control
             leftMotor = Motor(left_motor_pin1, left_motor_pin2);
             rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-            motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
+            motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, p, i, d,
                 reverseTime1, reverseTime2, bridge1WaitTime, bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
             // Claws
