@@ -8,7 +8,8 @@ int temp = 0;
 // Menu pins
 constexpr int btn = PB12; 
 constexpr int incrementBtn = PB13; 
-constexpr int pot = PB1; 
+constexpr int pot = PB0;
+constexpr int pot2 = PB1;  
 constexpr int startBtn = PB14; 
 
 // Motor pins 
@@ -103,6 +104,12 @@ BridgeSequence bridgeSequence;
 // IR Beacon TODO
 // Basket sequence TODO
 
+// Encoder 
+int e1 = PB5; 
+int e2 = PB6; 
+int e3 = PB8; 
+int e4 = PB9; 
+Encoder encoder = Encoder(e1, e2, e3, e4); 
 // Initialize display
 OLED myOled(PB7, PB6, 8); 
 extern uint8_t SmallFont[]; 
@@ -113,6 +120,7 @@ void setup() {
     pinMode(btn, INPUT_PULLUP); 
     pinMode(incrementBtn, INPUT_PULLUP);
     pinMode(pot, INPUT); 
+    pinMode(pot2, INPUT); 
     pinMode(startBtn, INPUT_PULLDOWN); 
 
     myOled.begin(); 
@@ -133,7 +141,7 @@ void displayMenu() {
     myOled.printNumI(potVal, RIGHT, 0); 
 
     // Option #
-    myOled.print("/", 5, 0); 
+    myOled.print("/", 7, 0); 
     myOled.printNumI(numConstants, 10, 0);
 
     // Display increment value
@@ -167,15 +175,36 @@ void displayMenu() {
     }
 }
 
-bool start = true; 
+void displayPID() { 
+    int p = analogRead(pot); 
+    int d = analogRead(pot2); 
+
+    myOled.print("PID Menu", 0, 0); 
+    myOled.print("P-constant: ", 0, 10); 
+    myOled.printNumI(p, RIGHT, 10); 
+    myOled.print("D-constant", 0, 20); 
+    myOled.printNumI(d, RIGHT, 20); 
+}
+
+bool start = false; 
+bool pidMenu = true; 
 bool firstRun = true; 
 void loop() {
-    if (!start) { 
-        // Menu 
+    if (false) { 
         start = digitalRead(startBtn); 
-        myOled.clrScr(); 
-        displayMenu(); 
-        myOled.update(); 
+        
+        if (pidMenu) { 
+            myOled.clrScr(); 
+            displayPID(); 
+            myOled.update(); 
+        }
+        else {
+            // Display regular menu 
+            myOled.clrScr(); 
+            displayMenu(); 
+            myOled.update(); 
+        }
+
         delay(100); 
     }
     else {  
@@ -204,6 +233,17 @@ void loop() {
         }
         // Control loops
         else { 
+            encoder.poll(); 
+            int encoderValR = encoder.getSpeedRight(); 
+            int encoderValL = encoder.getSpeedLeft();
+            // Serial.println(encoderValR); 
+            // Serial.println(encoderValL);  
+            // myOled.clrScr(); 
+            // myOled.print("Right speed: ", 0, 0); 
+            // myOled.print("Left speed:", 0, 10); 
+            // myOled.printNumI(encoderValR, RIGHT, 0); 
+            // myOled.printNumI(encoderValL, RIGHT, 10); 
+            // myOled.update(); 
             motorControl.poll(); 
             leftClaw.poll(); 
             rightClaw.poll(); 

@@ -4,11 +4,6 @@
 constexpr int CW = 1;
 constexpr int CCW = -1;
 
-void encoderInterruptHandlerLeft1(){
-    
-}
-
-
 class Encoder {
     private:
         int encoderLeftPin1;

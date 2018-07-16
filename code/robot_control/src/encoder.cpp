@@ -1,7 +1,6 @@
 #include "includes.h"
 
 Encoder::Encoder(){}; // Default Constructor
-
 Encoder::Encoder(int encoderLeftPin1, int encoderLeftPin2, int encoderRightPin1, int encoderRightPin2){
     // Encoder Pins must be 5 volt tolerant
 
@@ -20,7 +19,8 @@ void Encoder::poll(){
     int currentStateLeft2 = digitalRead(encoderLeftPin2);
     int currentStateRight1 = digitalRead(encoderRightPin1);
     int currentStateRight2 = digitalRead(encoderRightPin2);
-
+    Serial.print("Right1: "); Serial.println(currentStateRight1); 
+    Serial.print("Right2: "); Serial.println(currentStateRight2); 
     int currentTime = millis();
 
     if(currentStateLeft1 == HIGH && currentStateLeft1 != prevStateLeft1){
@@ -39,12 +39,13 @@ void Encoder::poll(){
         countRight2++;
         prevStateRight2 = currentStateRight2;
     }
-    if((countLeft1 == countLeft2) >= 6){
+    if((countLeft1 == countLeft2) && countLeft1 >= 6){
         speedLeft = countLeft1/(currentTime-prevTimeLeft);
         prevTimeLeft = currentTime;
     }
-    if((countRight1 == countRight2) >= 6){
+    if((countRight1 == countRight2) && countRight1 >= 6){
         speedRight = countRight1/(currentTime-prevTimeRight);
+        Serial.println(speedRight); 
         prevTimeRight = currentTime;
     }
 }
