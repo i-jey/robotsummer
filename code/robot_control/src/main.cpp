@@ -52,7 +52,7 @@ constexpr int forwardDriveTime1 = 2000;
 constexpr int forwardDriveTime2 = 2000; 
 
 ///////// OTHER CONSTANTS /////////
-int motorStartState = 1; 
+int motorStartState = 0; 
 int motorStartSpeed = 150; 
 
 ///////// MODULES AND SEQUENCE INITIALIZATION /////////
@@ -88,11 +88,12 @@ void loop() {
     // leftClaw.poll(); 
     // rightClaw.poll(); 
     // bridgeSequence.poll(); 
-    // float newSpeed = analogRead(pot) * 255 / 4096; 
+    float newSpeed = analogRead(pot) * 255 / 4096; 
     // Serial.println(newSpeed);
-    // motorControl.updateSpeed(newSpeed);  
+    motorControl.updateSpeedLeft(newSpeed);  
     // bridgeSequence.poll(); 
-    // motorControl.poll(); 
+    motorControl.poll(); 
+    Serial.println(newSpeed);
     // bridge.detectEdge();
     // bridge.lowerBridge1();  
     // delay(5000); 
@@ -103,3 +104,4 @@ void loop() {
     //     temp = 0; 
     // }
 }
+
