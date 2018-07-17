@@ -10,19 +10,19 @@ Arm::Arm(int clampPin, int armPin, int pushButton) {
 
 bool Arm::close() {
     if (digitalRead(pushButton)) { 
-        clampServo.write(180);
+        clampServo.write(150);
         return true; 
     } 
     return false; 
 }
 
 bool Arm::open() { 
-    clampServo.write(0); 
+    clampServo.write(50); 
     return true; 
 }
 
 bool Arm::raise() { 
-    armServo.write(180);
+    armServo.write(140);
     return true;
 }
 

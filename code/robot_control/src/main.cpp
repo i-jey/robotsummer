@@ -19,14 +19,14 @@ constexpr int right_motor_pin1 = PA0;
 constexpr int right_motor_pin2 = PA1;  
 
 // Left claw pins 
-constexpr int left_clamp_pin = PA1; 
-constexpr int left_arm_pin = PA2; 
-constexpr int left_push_button = PA3; 
+constexpr int left_clamp_pin = PA8; 
+constexpr int left_arm_pin = PA9; 
+constexpr int left_push_button = PB15; 
 
 // Right claw pins
-constexpr int right_clamp_pin = PB0; 
-constexpr int right_arm_pin = PB1;
-constexpr int right_push_button = PB6;  
+constexpr int right_clamp_pin = PB6; 
+constexpr int right_arm_pin = PB7;
+constexpr int right_push_button = PB4;  
 
 // Bridge servos 
 constexpr int bridge1_pin = PA7; 
@@ -64,7 +64,7 @@ int i = 0;
 int d = 37; 
 int pid_qrd_threshold = 200; 
 int motorStartState = 0; 
-int defaultSpeed = 150; 
+int defaultSpeed = 50; 
 
 
 int constants[] = {
@@ -116,7 +116,8 @@ extern uint8_t SmallFont[];
 
 void setup() {
     Serial.begin(9600); 
-    pinMode(right_push_button, INPUT); 
+    pinMode(right_push_button, INPUT_PULLDOWN);
+    pinMode(left_push_button, INPUT_PULLDOWN);  
     pinMode(btn, INPUT_PULLUP); 
     pinMode(incrementBtn, INPUT_PULLUP);
     pinMode(pot, INPUT); 
@@ -233,9 +234,6 @@ void loop() {
         }
         // Control loops
         else { 
-            encoder.poll(); 
-            int encoderValR = encoder.getSpeedRight(); 
-            int encoderValL = encoder.getSpeedLeft();
             // Serial.println(encoderValR); 
             // Serial.println(encoderValL);  
             // myOled.clrScr(); 
@@ -244,8 +242,9 @@ void loop() {
             // myOled.printNumI(encoderValR, RIGHT, 0); 
             // myOled.printNumI(encoderValL, RIGHT, 10); 
             // myOled.update(); 
-            motorControl.poll(); 
-            leftClaw.poll(); 
+            // motorControl.poll(); 
+            // leftClaw.poll(); 
+            Serial.println(digitalRead(right_push_button)); 
             rightClaw.poll(); 
         }
     }

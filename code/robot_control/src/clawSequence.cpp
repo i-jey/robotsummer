@@ -21,7 +21,7 @@ void ClawSequence::poll() {
     *  2 : Opens arm (to drop Browok in basket), advances to state=3 after lowerDelay
     *  3 : Lowers arm, resets to state=0 (polling push buttons)
     */
-
+    Serial.print("State: "); Serial.println(state); 
     if (millis() < delay) { 
         return; 
     }
@@ -31,6 +31,9 @@ void ClawSequence::poll() {
             if (arm.close()) { 
                 state++; 
                 delay = millis() + raiseDelay; 
+            }
+            else { 
+                arm.open(); 
             }
             // Only read every 50ms, avoids false button reads
             delay = millis() + 50; 
