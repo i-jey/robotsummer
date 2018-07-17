@@ -7,6 +7,7 @@ ClawSequence::ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDel
     this->raiseDelay = raiseDelay; 
     this->openDelay = openDelay;
     this->lowerDelay = lowerDelay;
+    state = 0; 
 }
 
 void ClawSequence::reset() { 
@@ -21,22 +22,23 @@ void ClawSequence::poll() {
     *  2 : Opens arm (to drop Browok in basket), advances to state=3 after lowerDelay
     *  3 : Lowers arm, resets to state=0 (polling push buttons)
     */
-    Serial.print("State: "); Serial.println(state); 
     if (millis() < delay) { 
         return; 
     }
-
+    Serial.print("State: "); Serial.println(state); 
     switch(state) { 
         case 0: 
-            if (arm.close()) { 
+            Serial.print("State: "); Serial.println(state); 
+            if (arm.ewokDetected()) { 
+                arm.close(); 
                 state++; 
                 delay = millis() + raiseDelay; 
             }
             else { 
                 arm.open(); 
+                // Only read every 50ms, avoids false button reads
+                delay = millis() + 50; 
             }
-            // Only read every 50ms, avoids false button reads
-            delay = millis() + 50; 
             break; 
         case 1: 
             if (arm.raise()) { 
@@ -51,9 +53,21 @@ void ClawSequence::poll() {
             }
             break; 
         case 3: 
+            arm.close(); 
+            state++; 
+            delay = millis() + 500; 
+            break; 
+        case 4: 
             if (arm.lower()) { 
-                reset(); 
+                state++; 
+                delay = millis() + 500; 
             }
+            break;
+        case 5: 
+            arm.open(); 
+            reset(); 
+            delay = millis() + 500; 
+            break; 
         case 10:
             arm.raise();  
             break; 

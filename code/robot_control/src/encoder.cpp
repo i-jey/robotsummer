@@ -19,10 +19,10 @@ void Encoder::poll(){
     int currentStateLeft2 = digitalRead(encoderLeftPin2);
     int currentStateRight1 = digitalRead(encoderRightPin1);
     int currentStateRight2 = digitalRead(encoderRightPin2);
-    Serial.print("Right1: "); Serial.println(currentStateRight1); 
-    Serial.print("Right2: "); Serial.println(currentStateRight2); 
     int currentTime = millis();
 
+    // Serial.print("CR1: "); Serial.println(currentStateRight1); 
+    // Serial.print("CR2: "); Serial.println(currentStateRight2); 
     if(currentStateLeft1 == HIGH && currentStateLeft1 != prevStateLeft1){
         countLeft1++;
         prevStateLeft1 = currentStateLeft1;
@@ -33,10 +33,12 @@ void Encoder::poll(){
     }
     if(currentStateRight1 == HIGH && currentStateRight1 != prevStateRight1){
         countRight1++;
+        // Serial.println(countRight1); 
         prevStateRight1 = currentStateRight1;
     }
     if(currentStateRight2 == HIGH && currentStateRight2 != prevStateRight2){
         countRight2++;
+        // Serial.println(countRight2); 
         prevStateRight2 = currentStateRight2;
     }
     if((countLeft1 == countLeft2) && countLeft1 >= 6){
@@ -45,7 +47,7 @@ void Encoder::poll(){
     }
     if((countRight1 == countRight2) && countRight1 >= 6){
         speedRight = countRight1/(currentTime-prevTimeRight);
-        Serial.println(speedRight); 
+        // Serial.println(speedRight); 
         prevTimeRight = currentTime;
     }
 }

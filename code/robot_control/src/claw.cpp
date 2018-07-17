@@ -8,25 +8,32 @@ Arm::Arm(int clampPin, int armPin, int pushButton) {
     this->pushButton = pushButton; 
 }
 
-bool Arm::close() {
+bool Arm::ewokDetected() { 
     if (digitalRead(pushButton)) { 
-        clampServo.write(150);
         return true; 
-    } 
+    }
     return false; 
 }
 
+bool Arm::close() {
+    clampServo.write(140);
+    return true; 
+}
+
 bool Arm::open() { 
-    clampServo.write(50); 
+    clampServo.write(40);    
     return true; 
 }
 
 bool Arm::raise() { 
-    armServo.write(140);
+    armServo.write(50);
+    Serial.println("RAISE"); 
     return true;
 }
 
 bool Arm::lower() { 
-    armServo.write(0); 
+    clampServo.write(140); 
+    armServo.write(180); 
+    Serial.println("LOWER");
     return true; 
 }
