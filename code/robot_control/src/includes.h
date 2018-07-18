@@ -19,5 +19,6 @@ constexpr float wheelDiameter = 6.14;
 #include "bridge.h"
 #include "bridgeSequence.h"
 #include "encoder.h"
+#include "tapeFollow.h"
 
 #endif 

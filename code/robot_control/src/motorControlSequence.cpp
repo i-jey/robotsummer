@@ -2,9 +2,9 @@
 #include "motorControlSequence.h"
 
 MotorControl::MotorControl(){};
-MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, int p, int i, int d,
-    int reverseTime1, int reverseTime2, int bridge1WaitTime, int bridge2WaitTime, 
-    int forwardDriveTime1, int forwardDriveTime2) { 
+MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
+    TapeFollow &pidControl, int qrdThreshold, int gain, int p, int i, int d, int reverseTime1, int reverseTime2, 
+    int bridge1WaitTime, int bridge2WaitTime, int forwardDriveTime1, int forwardDriveTime2) { 
 
     // FYI, the ampersand &, is a pointer (i.e as opposed to making a copy of the object
     // this means we will be referencing the actual object that was passed in)
@@ -23,6 +23,14 @@ MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMoto
 
     this->forwardDriveTime1 = forwardDriveTime1; 
     this->forwardDriveTime2 = forwardDriveTime2; 
+
+    this->qrdThreshold = qrdThreshold;  
+    this->gain = gain; 
+    this->pVal = p; 
+    this->iVal = i; 
+    this->dVal = d; 
+
+    this->pidControl = pidControl; 
 }
 
 void MotorControl::reset() { 
@@ -58,14 +66,15 @@ void MotorControl::poll() {
             rightMotor.reverse(speedRight); 
             break; 
         case 2:
-            // TODO 
-            // ayy lmao, write soAme PID functions, call them here
+            // Tape following 
+            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal); 
+            updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
+            updateSpeedRight(pidControl.getRightMotorSpeed()); 
             break; 
         case 10: 
             // Edge detected, stop
             leftMotor.reverse(255); 
             leftMotor.reverse(255);
-            Serial.println("YO PULL BACK that's a BIG cliff"); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 
@@ -75,7 +84,6 @@ void MotorControl::poll() {
             // wait for bridge to lower
             leftMotor.forward(0); 
             rightMotor.forward(0); 
-            Serial.println("hol' hol' up");
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + reverseTime1; 
@@ -85,7 +93,6 @@ void MotorControl::poll() {
             // Reverse to drop bridge 
             leftMotor.reverse(speedLeft); 
             leftMotor.reverse(speedRight); 
-            Serial.println("Back up and drop it like it's hot"); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + forwardDriveTime1; 
@@ -95,7 +102,6 @@ void MotorControl::poll() {
             // CHANGE THIS later
             leftMotor.forward(150); 
             rightMotor.forward(150);
-            Serial.println("forward boi");
             if (millis() > delay) { 
                 // CHANGE THE DEFAULT STATE, 0 for testing for now
                 state = 0; 
@@ -151,6 +157,10 @@ void MotorControl::updateSpeedRight(int newSpeed) {
     speedRight = newSpeed;
 }
 
+void MotorControl::updateThreshold(int newThreshold) { 
+    qrdThreshold = newThreshold; 
+}
+
 void MotorControl::updateGain(int newGain) { 
     gain = newGain; 
 }
@@ -166,3 +176,10 @@ void MotorControl::updateI(int newI) {
 void MotorControl::updateD(int newD) { 
     dVal = newD; 
 }
+
+void tapeFollow() { 
+
+}
+
+
+

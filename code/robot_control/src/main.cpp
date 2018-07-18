@@ -7,6 +7,10 @@ constexpr int right_motor_pin2 = PA1;
 constexpr int left_motor_pin1 = PA2; 
 constexpr int left_motor_pin2 = PA3; 
 
+// PID QRDs 
+constexpr int right_pid_QRD = PA4; 
+constexpr int left_pid_QRD = PA5; 
+
 // Right claw pins 
 constexpr int right_clamp_pin = PB8; 
 constexpr int right_arm_pin = PB7; 
@@ -29,6 +33,7 @@ int forwardDriveTime1 = 2000;
 int forwardDriveTime2 = 2000; 
 
 // PID constants
+int qrdThreshold = 50; 
 int gain = 1;
 int p = 50; 
 int i = 0; 
@@ -38,11 +43,12 @@ int pid_qrd_threshold = 200;
 // Start state and speed
 int motorStartState = 0; 
 int defaultSpeed = 60; 
+TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
 Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
 MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
-    gain, p, i, d, reverseTime1, reverseTime2, bridge1WaitTime, 
+    pidControl, qrdThreshold, gain, p, i, d, reverseTime1, reverseTime2, bridge1WaitTime, 
     bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
 // Claw 
