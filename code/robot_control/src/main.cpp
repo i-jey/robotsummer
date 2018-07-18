@@ -109,16 +109,17 @@ void pidMenu() {
     oled.print("threshold: ", 0, 40); 
 
     if (digitalRead(menuPlus)) {
-        if (optionState = 3) 
+        if (optionState == 3) 
             {optionState = 0;
         }
         else {
             optionState++;
         }
     }
-    int potVal = analogRead(menuPot); 
+
     oled.printNumI(potVal, RIGHT, (optionState+1)*10);
     oled.print("<--", 10, (optionState+1)*10); 
+
     switch (optionState) { 
         case 0:
             motorControl.updateP(potVal); 
