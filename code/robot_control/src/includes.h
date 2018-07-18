@@ -12,6 +12,7 @@ constexpr float wheelDiameter = 6.14;
 
 // header files 
 #include "motor.h"
+#include "motorinit.h"
 #include "motorControlSequence.h"
 #include "claw.h" 
 #include "clawSequence.h"
