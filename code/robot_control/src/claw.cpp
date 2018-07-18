@@ -15,25 +15,21 @@ bool Arm::ewokDetected() {
     return false; 
 }
 
-bool Arm::close() {
+void Arm::close() {
     clampServo.write(140);
-    return true; 
 }
 
-bool Arm::open() { 
-    clampServo.write(40);    
-    return true; 
+void Arm::open() { 
+    clampServo.write(40);     
 }
 
-bool Arm::raise() { 
+void Arm::raise() { 
     armServo.write(50);
     Serial.println("RAISE"); 
-    return true;
 }
 
-bool Arm::lower() { 
+void Arm::lower() { 
     clampServo.write(140); 
     armServo.write(180); 
     Serial.println("LOWER");
-    return true; 
 }

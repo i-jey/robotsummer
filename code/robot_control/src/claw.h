@@ -11,10 +11,10 @@ class Arm {
         Arm();
         Arm(int clampPin, int armPin, int pushButton); 
         bool ewokDetected(); 
-        bool close(); 
-        bool open(); 
-        bool raise(); 
-        bool lower(); 
+        void close(); 
+        void open(); 
+        void raise(); 
+        void lower(); 
 }; 
 
 #endif 

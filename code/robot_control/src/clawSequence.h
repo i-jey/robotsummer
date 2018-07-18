@@ -5,15 +5,18 @@
 class ClawSequence {
     private: 
         unsigned long delay; 
-        int raiseDelay; 
-        int openDelay; 
-        int lowerDelay; 
+        int closeTime; 
+        int raiseTime; 
+        int openTime; 
+        int closeTime2; 
+        int lowerTime; 
+        int resetTime;  
         int state; 
         Arm arm; 
 
     public: 
         ClawSequence(); 
-        ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay); 
+        ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime); 
         void reset(); 
         void poll(); 
         void stateOverride(int specialState); 

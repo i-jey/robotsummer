@@ -27,7 +27,9 @@ int bridge2WaitTime = 7500;
 // How long to drive forward after dropping bridge 
 int forwardDriveTime1 = 2000; 
 int forwardDriveTime2 = 2000; 
+
 // PID constants
+int gain = 1;
 int p = 50; 
 int i = 0; 
 int d = 37; 
@@ -40,19 +42,22 @@ int defaultSpeed = 60;
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
 Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
 MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
-    p, i, d, reverseTime1, reverseTime2, bridge1WaitTime, 
+    gain, p, i, d, reverseTime1, reverseTime2, bridge1WaitTime, 
     bridge2WaitTime, forwardDriveTime1, forwardDriveTime2); 
 
 // Claw 
-int raiseClawDelay = 250; 
-int openClawDelay = 1000; 
-int lowerClawDelay = 1000; 
+int closeTime = 250; 
+int raiseTime = 1000; 
+int openTime = 500; 
+int closeTime2 = 500; 
+int lowerTime = 1000; 
+int resetTime = 500; 
 
 Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button); 
-ClawSequence rightClaw = ClawSequence(rightArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
-ClawSequence leftClaw = ClawSequence(leftArm, raiseClawDelay, openClawDelay, lowerClawDelay); 
+ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 
 void setup() { 
     Serial.begin(9600); 
@@ -61,7 +66,7 @@ void setup() {
     MotorInit motorInit = MotorInit(); 
     motorInit.init(); 
     
-    // Right claw pinModes 
+    // Initialize claw buttons
     pinMode(right_push_button, INPUT_PULLDOWN); 
     pinMode(left_push_button, INPUT_PULLDOWN); 
 }

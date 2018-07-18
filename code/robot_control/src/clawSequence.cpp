@@ -2,11 +2,15 @@
 #include "clawSequence.h"
 
 ClawSequence::ClawSequence(){};
-ClawSequence::ClawSequence(Arm &arm, int raiseDelay, int openDelay, int lowerDelay) { 
+ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime) { 
     this->arm = arm; 
-    this->raiseDelay = raiseDelay; 
-    this->openDelay = openDelay;
-    this->lowerDelay = lowerDelay;
+    this->closeTime = closeTime;
+    this->raiseTime = raiseTime;
+    this->openTime = openTime;
+    this->closeTime2 = closeTime2;
+    this->lowerTime = lowerTime;
+    this->resetTime = resetTime; 
+
     state = 0; 
 }
 
@@ -28,11 +32,10 @@ void ClawSequence::poll() {
     Serial.print("State: "); Serial.println(state); 
     switch(state) { 
         case 0: 
-            Serial.print("State: "); Serial.println(state); 
             if (arm.ewokDetected()) { 
                 arm.close(); 
                 state++; 
-                delay = millis() + raiseDelay; 
+                delay = millis() + closeTime; 
             }
             else { 
                 arm.open(); 
@@ -41,32 +44,29 @@ void ClawSequence::poll() {
             }
             break; 
         case 1: 
-            if (arm.raise()) { 
-                state++; 
-                delay = millis() + openDelay; 
-            }
+            arm.raise();
+            state++; 
+            delay = millis() + raiseTime; 
             break; 
         case 2: 
-            if (arm.open()) { 
-                state++; 
-                delay = millis() + lowerDelay; 
-            }
+            arm.open(); 
+            state++; 
+            delay = millis() + openTime; 
             break; 
         case 3: 
             arm.close(); 
             state++; 
-            delay = millis() + 500; 
+            delay = millis() + closeTime2; 
             break; 
         case 4: 
-            if (arm.lower()) { 
-                state++; 
-                delay = millis() + 500; 
-            }
+            arm.lower(); 
+            state++; 
+            delay = millis() + lowerTime; 
             break;
         case 5: 
             arm.open(); 
             reset(); 
-            delay = millis() + 500; 
+            delay = millis() + resetTime; 
             break; 
         case 10:
             arm.raise();  
