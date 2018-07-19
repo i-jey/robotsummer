@@ -49,7 +49,6 @@ class MotorControl {
         void updateP(int newP); 
         void updateI(int newI); 
         void updateD(int newD); 
-        void tapeFollow(); 
 };
 
 #endif

@@ -52,7 +52,7 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-   // Serial.print("State: ");
+   Serial.print("State: ");
    // Serial.println(state);  
     switch(state) { 
         case 0: 
@@ -177,9 +177,7 @@ void MotorControl::updateD(int newD) {
     dVal = newD; 
 }
 
-void tapeFollow() { 
 
-}
 
 
 
