@@ -92,6 +92,8 @@ void setup() {
     pinMode(left_push_button, INPUT_PULLDOWN); 
 
     // Menu dials 
+    pinMode(oled_scl, INPUT_PULLUP); 
+    pinMode(oled_sda, INPUT_PULLUP); 
     pinMode(startBtn, INPUT_PULLDOWN);
     start = digitalRead(startBtn);  
     pinMode(menuPot, INPUT); 
@@ -105,14 +107,14 @@ void setup() {
 int optionState = 0; 
 void pidMenu() { 
     int potVal = analogRead(menuPot) / 10; 
-    myOled.clrScr(); 
+    
     myOled.print("PID Menu", 0, 0); 
     myOled.print("p: ", 0, 10); 
     myOled.print("d: ", 0, 20); 
     myOled.print("gain: ", 0, 30); 
     myOled.print("thresh: ", 0, 40); 
 
-    delay(150); 
+    delay(100); 
     if (!digitalRead(menuPlus)) {
         if (optionState == 3) 
             {optionState = 0;
@@ -150,20 +152,22 @@ void pidMenu() {
                 qrdThreshold = potVal; 
                 motorControl.updateThreshold(potVal);
                 break; 
+            default:
+                break; 
         }
     }
     else {
          myOled.print("View", RIGHT, 50); 
     }
-
-    myOled.update(); 
 }
 
 void loop() { 
     start = digitalRead(startBtn); 
     Serial.println(start); 
     if (!start) { 
-        pidMenu();  
+        myOled.clrScr(); 
+        pidMenu(); 
+        myOled.update();  
     }
     else {
         motorControl.poll(); 

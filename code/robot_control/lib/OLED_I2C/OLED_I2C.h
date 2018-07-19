@@ -104,7 +104,6 @@ struct _current_font
 class OLED
 {
 	public:
-		OLED(); // Default constructor
 		OLED(uint8_t data_pin, uint8_t sclk_pin, uint8_t rst_pin);
 		OLED(uint8_t data_pin, uint8_t sclk_pin);
 		void	begin();
