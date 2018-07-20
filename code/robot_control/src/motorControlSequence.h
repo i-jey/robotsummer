@@ -11,6 +11,7 @@ class MotorControl {
         Motor leftMotor; 
         Motor rightMotor; 
 
+        int defaultSpeed; 
         int speedLeft;
         int speedRight;
 
@@ -40,6 +41,7 @@ class MotorControl {
         void poll(); 
         void stateOverride(int specialState, int delay); 
 
+        void updateDefaultSpeed(int newSpeed); 
         void updateSpeed(int newSpeed); 
         void updateSpeedLeft(int newSpeed);
         void updateSpeedRight(int newSpeed);

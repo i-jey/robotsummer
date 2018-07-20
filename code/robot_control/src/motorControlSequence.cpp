@@ -8,7 +8,8 @@ MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMoto
 
     // FYI, the ampersand &, is a pointer (i.e as opposed to making a copy of the object
     // this means we will be referencing the actual object that was passed in)
-    this->state = startingState; 
+    this->state = startingState;
+    this->defaultSpeed = startingSpeed;  
     this->speedLeft = startingSpeed;
     this->speedRight = startingSpeed;
 
@@ -52,8 +53,7 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-   Serial.print("State: ");
-   Serial.println(state);  
+   Serial.print("State: "); Serial.println(state);  
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
@@ -67,7 +67,7 @@ void MotorControl::poll() {
             break; 
         case 2:
             // Tape following 
-            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal); 
+            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed); 
             updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
             updateSpeedRight(pidControl.getRightMotorSpeed()); 
             break; 
@@ -144,9 +144,13 @@ void MotorControl::stateOverride(int specialState, int delay) {
    this->delay = delay; 
 }
 
+void MotorControl::updateDefaultSpeed(int newSpeed) { 
+    this->defaultSpeed = newSpeed; 
+}
+
 void MotorControl::updateSpeed(int newSpeed) { 
-    speedLeft = newSpeed; 
-    speedRight = newSpeed;
+    this->speedLeft = newSpeed; 
+    this->speedRight = newSpeed;
 }
 
 void MotorControl::updateSpeedLeft(int newSpeed) {
