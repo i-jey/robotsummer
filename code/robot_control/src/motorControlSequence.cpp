@@ -53,7 +53,7 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-   Serial.print("State: "); Serial.println(state);  
+   Serial.print("Speed: "); Serial.println(speedLeft); 
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
@@ -68,8 +68,13 @@ void MotorControl::poll() {
         case 2:
             // Tape following 
             pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed); 
+
             updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
             updateSpeedRight(pidControl.getRightMotorSpeed()); 
+
+            leftMotor.forward(speedLeft); 
+            rightMotor.forward(speedRight); 
+            
             break; 
         case 10: 
             // Edge detected, stop

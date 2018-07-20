@@ -13,7 +13,6 @@ void TapeFollow::followTape(int qrdThreshold, int gain, int p, int i, int d, int
     rightQRDState = analogRead(rightQRDPin) > qrdThreshold;
 
     // Error cases 
-
     // Both QRDs on tape
     if (leftQRDState && rightQRDState) { 
         error = 0; 
@@ -40,11 +39,15 @@ void TapeFollow::followTape(int qrdThreshold, int gain, int p, int i, int d, int
     pidGain *= gain; 
 
     if (pidGain < 0) { 
-        this->leftMotorSpeed = defaultMotorSpeed + pidGain; 
-        this->rightMotorSpeed = -defaultMotorSpeed; 
+        this->leftMotorSpeed = defaultMotorSpeed + abs(pidGain); 
+        this->rightMotorSpeed = defaultMotorSpeed - abs(pidGain); 
     } 
-    if (pidGain > 0) { 
-        this->leftMotorSpeed = -defaultMotorSpeed - pidGain; 
+    else if (pidGain > 0) { 
+        this->leftMotorSpeed = defaultMotorSpeed - abs(pidGain); 
+        this->rightMotorSpeed = defaultMotorSpeed + abs(pidGain); 
+    }
+    else { 
+        this->leftMotorSpeed = defaultMotorSpeed; 
         this->rightMotorSpeed = defaultMotorSpeed; 
     }
 
@@ -52,7 +55,6 @@ void TapeFollow::followTape(int qrdThreshold, int gain, int p, int i, int d, int
 }
 
 int TapeFollow::getLeftMotorSpeed() {
-    Serial.print("PID speed: "); Serial.println(defaultMotorSpeed); 
     return this->leftMotorSpeed; 
 }
 
