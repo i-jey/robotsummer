@@ -29,7 +29,6 @@ void ClawSequence::poll() {
     if (millis() < delay) { 
         return; 
     }
-    Serial.print("State: "); Serial.println(state); 
     switch(state) { 
         case 0: 
             if (arm.ewokDetected()) { 
