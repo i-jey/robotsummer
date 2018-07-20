@@ -54,6 +54,7 @@ void MotorControl::poll() {
     */  
    Serial.print("State: ");
    Serial.println(state);  
+   Serial.print("Speed: "); Serial.println(speedLeft); 
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
@@ -67,7 +68,9 @@ void MotorControl::poll() {
             break; 
         case 2:
             // Tape following 
-            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal); 
+            pidControl.updateSpeed(speedLeft); 
+            Serial.print("Motor control speed: "); Serial.println(speedLeft); 
+            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, speedLeft); 
             updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
             updateSpeedRight(pidControl.getRightMotorSpeed()); 
             break; 
@@ -145,8 +148,8 @@ void MotorControl::stateOverride(int specialState, int delay) {
 }
 
 void MotorControl::updateSpeed(int newSpeed) { 
-    speedLeft = newSpeed; 
-    speedRight = newSpeed;
+    this->speedLeft = newSpeed; 
+    this->speedRight = newSpeed;
 }
 
 void MotorControl::updateSpeedLeft(int newSpeed) {

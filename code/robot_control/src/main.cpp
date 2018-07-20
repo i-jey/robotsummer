@@ -47,7 +47,7 @@ int d = 4;
 int pid_qrd_threshold = 200; 
 
 // Start state and speed
-int motorStartState = 0; 
+int motorStartState = 2; 
 int defaultSpeed = 50; 
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
@@ -75,10 +75,11 @@ ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, cl
 // Menu pins 
 bool start; 
 bool toggle = false; 
-constexpr int startBtn = PC15;
-constexpr int menuPot = PB1; 
+constexpr int menuToggle = PA11; 
 constexpr int menuPlus = PA12; 
 constexpr int menuMinus = PA15; 
+constexpr int menuPot = PB1; 
+constexpr int startBtn = PC15;
 
 void setup() { 
     Serial.begin(9600); 
@@ -113,11 +114,12 @@ void pidMenu() {
     myOled.print("d: ", 0, 20); 
     myOled.print("gain: ", 0, 30); 
     myOled.print("thresh: ", 0, 40); 
+    myOled.print("Speed: ", 0, 50); 
 
     delay(100); 
     if (!digitalRead(menuPlus)) {
-        if (optionState == 3) 
-            {optionState = 0;
+        if (optionState == 4)  {
+            optionState = 0;
         }
         else {
             optionState++;
@@ -129,11 +131,11 @@ void pidMenu() {
     myOled.printNumI(d, RIGHT, 20);
     myOled.printNumI(gain, RIGHT, 30);
     myOled.printNumI(qrdThreshold, RIGHT, 40);
-    myOled.print("Mode: ", 0, 50); 
+    myOled.printNumI(defaultSpeed, RIGHT, 50); 
     myOled.print("<--", 45, (optionState+1)*10); 
 
     if (toggle) { 
-        myOled.print("Edit", RIGHT, 50); 
+        myOled.print("Edit", RIGHT, 0); 
     
         switch (optionState) { 
             case 0:
@@ -152,18 +154,21 @@ void pidMenu() {
                 qrdThreshold = potVal; 
                 motorControl.updateThreshold(potVal);
                 break; 
+            case 4: 
+                defaultSpeed = potVal; 
+                motorControl.updateSpeed(defaultSpeed); 
+                break; 
             default:
                 break; 
         }
     }
     else {
-         myOled.print("View", RIGHT, 50); 
+         myOled.print("View", RIGHT, 0); 
     }
 }
 
 void loop() { 
     start = digitalRead(startBtn); 
-    Serial.println(start); 
     if (!start) { 
         myOled.clrScr(); 
         pidMenu(); 
