@@ -22,6 +22,8 @@ class TapeFollow {
         void followTape(int qrdThreshold, int gain, int p, int i, int d, int defaultMotorSpeed); 
         int getLeftMotorSpeed(); 
         int getRightMotorSpeed(); 
+        int getLeftQRDReading(); 
+        int getRightQRDReading(); 
         void updateSpeed(int newSpeed); 
 }; 
 

@@ -67,9 +67,9 @@ int lowerTime = 1000;
 int resetTime = 500; 
 
 // Initialize arms and claws
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button); 
+Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, 180, 50); 
 ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
-Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button); 
+Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button, 50, 180); 
 ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 
 // Menu pins 
@@ -130,6 +130,8 @@ void pidMenu() {
     myOled.printNumI(p, RIGHT, 10);
     myOled.printNumI(d, RIGHT, 20);
     myOled.printNumI(gain, RIGHT, 30);
+    myOled.printNumI(pidControl.getLeftQRDReading(), 30, 40);
+    myOled.printNumI(pidControl.getRightQRDReading(), 60, 40); 
     myOled.printNumI(qrdThreshold, RIGHT, 40);
     myOled.printNumI(defaultSpeed, RIGHT, 50); 
     myOled.print("<--", 45, (optionState+1)*10); 

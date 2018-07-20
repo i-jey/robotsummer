@@ -53,7 +53,8 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-   Serial.print("Speed: "); Serial.println(speedLeft); 
+    Serial.print("L: "); Serial.println(speedLeft); 
+    Serial.print("R: "); Serial.println(speedRight); 
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
@@ -71,10 +72,17 @@ void MotorControl::poll() {
 
             updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
             updateSpeedRight(pidControl.getRightMotorSpeed()); 
+            // Cap at 255
+            if (speedLeft > 255) {speedLeft = 255;}
+            if (speedLeft < -255) {speedLeft = -255;}
+            if (speedRight > 255) {speedRight = 255;}
+            if (speedRight < -255) {speedRight = -255;}
 
-            leftMotor.forward(speedLeft); 
-            rightMotor.forward(speedRight); 
-            
+            if (speedLeft < 0) {leftMotor.reverse(abs(speedLeft));}
+            if (speedRight < 0) {rightMotor.reverse(abs(speedRight));}
+            if (speedLeft > 0) {leftMotor.forward(speedLeft);}
+            if (speedRight > 0) {rightMotor.forward(speedRight);}
+
             break; 
         case 10: 
             // Edge detected, stop

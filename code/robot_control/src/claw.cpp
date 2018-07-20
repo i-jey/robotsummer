@@ -2,10 +2,12 @@
 #include "claw.h" 
 
 Arm::Arm(){}; // default constructor otherwise C++ whines
-Arm::Arm(int clampPin, int armPin, int pushButton) { 
+Arm::Arm(int clampPin, int armPin, int pushButton, int lowerAngle, int raiseAngle) { 
     clampServo.attach(clampPin); 
     armServo.attach(armPin);  
     this->pushButton = pushButton; 
+    this->lowerAngle = lowerAngle; 
+    this->raiseAngle = raiseAngle; 
 }
 
 bool Arm::ewokDetected() { 
@@ -24,12 +26,12 @@ void Arm::open() {
 }
 
 void Arm::raise() { 
-    armServo.write(50);
+    armServo.write(raiseAngle);
     Serial.println("RAISE"); 
 }
 
 void Arm::lower() { 
-    clampServo.write(140); 
-    armServo.write(180); 
+    // clampServo.write(140); 
+    armServo.write(lowerAngle); 
     Serial.println("LOWER");
 }

@@ -62,6 +62,14 @@ int TapeFollow::getRightMotorSpeed() {
     return this->rightMotorSpeed; 
 }
 
+int TapeFollow::getLeftQRDReading() { 
+    return analogRead(leftQRDPin); 
+}
+
+int TapeFollow::getRightQRDReading() { 
+    return analogRead(rightQRDPin); 
+}
+
 void TapeFollow::updateSpeed(int newSpeed) { 
     this->defaultMotorSpeed = newSpeed; 
 }
