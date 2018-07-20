@@ -156,6 +156,7 @@ void pidMenu() {
                 break; 
             case 4: 
                 defaultSpeed = potVal; 
+                motorControl.updateDefaultSpeed(defaultSpeed); 
                 motorControl.updateSpeed(defaultSpeed); 
                 break; 
             default:

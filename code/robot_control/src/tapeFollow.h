@@ -10,9 +10,9 @@ class TapeFollow {
         int error = 0; 
         int lastError = 0; 
 
-        int defaultMotorSpeed; 
-        int leftMotorSpeed; 
-        int rightMotorSpeed; 
+        int defaultMotorSpeed = 0; 
+        int leftMotorSpeed = 0; 
+        int rightMotorSpeed = 0; 
 
         int pidGain; 
 
