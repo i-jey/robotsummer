@@ -41,3 +41,7 @@ Electrical Circuits
 
 ## High-side driver H-Bridge
 ![](https://raw.githubusercontent.com/i-jey/robotsummer/master/images/high-side-driver-H-bridge.PNG)
+
+Tricks
+===
+1. Capacitors between power and ground prevent the bluepill from turning off when the H-bridges turn on. A 470uF capacitor keeps the bluepill powered at 3.3V for long enough when the voltage of the rest of the battery drops due to the sudden current draw of the h-bridges.
