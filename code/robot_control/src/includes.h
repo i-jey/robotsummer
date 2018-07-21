@@ -9,6 +9,7 @@ constexpr float wheelDiameter = 6.14;
 #include <Arduino.h>
 #include <Servo.h>
 #include <OLED_I2C.h>
+#include <EEPROM.h>
 
 // header files 
 #include "motor.h"

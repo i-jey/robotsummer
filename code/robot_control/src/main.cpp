@@ -67,9 +67,9 @@ int lowerTime = 1000;
 int resetTime = 500; 
 
 // Initialize arms and claws
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, 180, 50); 
+Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, 140, 40, 10, 180); 
 ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
-Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button, 50, 180); 
+Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button, 140, 40, 50, 180); 
 ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 
 // Menu pins 
