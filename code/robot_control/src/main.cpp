@@ -1,6 +1,18 @@
 #include "includes.h"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
+// EEPROM address 
+uint16 startingAddress = 0x10; 
+
+// EEPROM / menu reference 
+enum MenuItems { 
+    p,
+    d, 
+    gain, 
+    qrdThreshold, 
+    defaultSpeed
+};
+
 // Oled pins 
 constexpr int oled_scl = PB10; 
 constexpr int oled_sda = PB11; 
@@ -39,16 +51,15 @@ int forwardDriveTime1 = 2000;
 int forwardDriveTime2 = 2000; 
 
 // PID constants
-int qrdThreshold = 50; 
-int gain = 5;
-int p = 1; 
+int p = EEPROM.read(startingAddress + MenuItems::p);
 int i = 0; 
-int d = 4; 
-int pid_qrd_threshold = 200; 
+int d = EEPROM.read(startingAddress + MenuItems::d);
+int gain = EEPROM.read(startingAddress + MenuItems::gain);
+int qrdThreshold = EEPROM.read(startingAddress + MenuItems::qrdThreshold); 
 
 // Start state and speed
 int motorStartState = 2; 
-int defaultSpeed = 50; 
+int defaultSpeed = EEPROM.read(startingAddress + MenuItems::defaultSpeed); 
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
 // Initialize motor
@@ -96,13 +107,15 @@ void setup() {
     pinMode(oled_scl, INPUT_PULLUP); 
     pinMode(oled_sda, INPUT_PULLUP); 
     pinMode(startBtn, INPUT_PULLDOWN);
+
     start = digitalRead(startBtn);  
+
     pinMode(menuPot, INPUT); 
     pinMode(menuPlus, INPUT_PULLDOWN); 
     pinMode(menuMinus, INPUT_PULLDOWN); 
+
     myOled.begin(); 
     myOled.setFont(SmallFont); 
-
 }
 
 int optionState = 0; 
@@ -142,22 +155,27 @@ void pidMenu() {
         switch (optionState) { 
             case 0:
                 p = potVal; 
+                EEPROM.write(startingAddress+MenuItems::p, p); 
                 motorControl.updateP(potVal);  
                 break; 
             case 1: 
                 d = potVal; 
+                EEPROM.write(startingAddress+MenuItems::d, p); 
                 motorControl.updateD(potVal); 
                 break; 
             case 2: 
                 gain = potVal; 
+                EEPROM.write(startingAddress+MenuItems::gain, p); 
                 motorControl.updateGain(potVal);
                 break; 
             case 3: 
                 qrdThreshold = potVal; 
+                EEPROM.write(startingAddress+MenuItems::qrdThreshold, p); 
                 motorControl.updateThreshold(potVal);
                 break; 
             case 4: 
                 defaultSpeed = potVal; 
+                EEPROM.write(startingAddress+MenuItems::defaultSpeed, p); 
                 motorControl.updateDefaultSpeed(defaultSpeed); 
                 motorControl.updateSpeed(defaultSpeed); 
                 break; 
