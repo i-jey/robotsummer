@@ -1,5 +1,5 @@
 #include "includes.h"
-#include "clawSequence.h"
+#define INSIDE 1
 
 ClawSequence::ClawSequence(){};
 ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime) { 
@@ -37,7 +37,7 @@ void ClawSequence::poll() {
                 delay = millis() + closeTime; 
             }
             else { 
-                arm.open(); 
+                arm.open(!INSIDE); 
                 // Only read every 50ms, avoids false button reads
                 delay = millis() + 50; 
             }
@@ -48,7 +48,7 @@ void ClawSequence::poll() {
             delay = millis() + raiseTime; 
             break; 
         case 2: 
-            arm.open(); 
+            arm.open(INSIDE); 
             state++; 
             delay = millis() + openTime; 
             break; 
@@ -63,7 +63,7 @@ void ClawSequence::poll() {
             delay = millis() + lowerTime; 
             break;
         case 5: 
-            arm.open(); 
+            arm.open(!INSIDE); 
             reset(); 
             delay = millis() + resetTime; 
             break; 

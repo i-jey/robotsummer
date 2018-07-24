@@ -8,15 +8,16 @@ class Arm {
         int pushButton; 
         int closeAngle; 
         int openAngle; 
+        int openAngleInside; 
         int lowerAngle; 
         int raiseAngle; 
 
     public: 
         Arm();
-        Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle, int lowerAngle, int raiseAngle); 
+        Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle); 
         bool ewokDetected(); 
         void close(); 
-        void open(); 
+        void open(bool isInside); 
         void raise(); 
         void lower(); 
 }; 
