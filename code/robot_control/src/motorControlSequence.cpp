@@ -1,5 +1,4 @@
 #include "includes.h" 
-#include "motorControlSequence.h"
 
 MotorControl::MotorControl(){};
 MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
@@ -55,6 +54,8 @@ void MotorControl::poll() {
     */  
     Serial.print("L: "); Serial.println(speedLeft); 
     Serial.print("R: "); Serial.println(speedRight); 
+    // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
+    // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
@@ -87,7 +88,7 @@ void MotorControl::poll() {
         case 10: 
             // Edge detected, stop
             leftMotor.reverse(255); 
-            leftMotor.reverse(255);
+            rightMotor.reverse(255);
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 
@@ -105,7 +106,7 @@ void MotorControl::poll() {
         case 12: 
             // Reverse to drop bridge 
             leftMotor.reverse(speedLeft); 
-            leftMotor.reverse(speedRight); 
+            rightMotor.reverse(speedRight); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + forwardDriveTime1; 
