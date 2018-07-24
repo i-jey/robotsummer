@@ -59,13 +59,13 @@ void MotorControl::poll() {
     switch(state) { 
         case 0: 
             // This state is only meant for basic testing
-            leftMotor.forward(speedLeft); 
-            rightMotor.forward(speedRight); 
+            leftMotor.write(speedLeft); 
+            rightMotor.write(speedRight); 
             break; 
         case 1: 
             // This state is only meant for basic testing 
-            leftMotor.reverse(speedLeft); 
-            rightMotor.reverse(speedRight); 
+            leftMotor.write(-speedLeft); 
+            rightMotor.write(-speedRight); 
             break; 
         case 2:
             // Tape following 
@@ -73,16 +73,9 @@ void MotorControl::poll() {
 
             updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
             updateSpeedRight(pidControl.getRightMotorSpeed()); 
-            // Cap at 255
-            if (speedLeft > 255) {speedLeft = 255;}
-            if (speedLeft < -255) {speedLeft = -255;}
-            if (speedRight > 255) {speedRight = 255;}
-            if (speedRight < -255) {speedRight = -255;}
-
-            if (speedLeft < 0) {leftMotor.reverse(abs(speedLeft));}
-            if (speedRight < 0) {rightMotor.reverse(abs(speedRight));}
-            if (speedLeft > 0) {leftMotor.forward(speedLeft);}
-            if (speedRight > 0) {rightMotor.forward(speedRight);}
+            
+            leftMotor.write(speedLeft); 
+            rightMotor.write(speedRight); 
 
             break; 
         case 10: 
@@ -118,7 +111,7 @@ void MotorControl::poll() {
             rightMotor.forward(150);
             if (millis() > delay) { 
                 // CHANGE THE DEFAULT STATE, 0 for testing for now
-                state = 0; 
+                state = 2; 
             } 
             break;
         case 20: 
@@ -158,23 +151,44 @@ void MotorControl::stateOverride(int specialState, int delay) {
    this->delay = delay; 
 }
 
+/** 
+ * Takes in an integer speed to be used as the new default speed. 
+ * The default speed sets the base speed for PID control.
+**/
 void MotorControl::updateDefaultSpeed(int newSpeed) { 
     this->defaultSpeed = newSpeed; 
 }
 
+/**
+ * Takes in an integer
+ * Sets the current speeds being written to the motors.
+**/
 void MotorControl::updateSpeed(int newSpeed) { 
     this->speedLeft = newSpeed; 
     this->speedRight = newSpeed;
 }
 
+/** 
+ * Takes in an integer 
+ * Updates the speed of the left motor
+**/ 
 void MotorControl::updateSpeedLeft(int newSpeed) {
     speedLeft = newSpeed;
 }
 
+/** 
+ * Takes in an integer
+ * Updates the speed of the right motor
+**/ 
 void MotorControl::updateSpeedRight(int newSpeed) {
     speedRight = newSpeed;
 }
 
+/**
+ * Takes in an integer
+ * Updates the value of the QRD threshold (used to determine whether
+ * on tape or not in PID control) 
+**/ 
 void MotorControl::updateThreshold(int newThreshold) { 
     qrdThreshold = newThreshold; 
 }

@@ -23,3 +23,11 @@ void Motor::reverse(int speed) {
     analogWrite(motorPin1, 0); 
     analogWrite(motorPin2, speed); 
 }
+
+void Motor::write(int speed) { 
+    if (speed > 255) {speed = 255;}
+    else if (speed < -255) {speed = -255;}
+    
+    if (speed >= 0) {forward(speed);}
+    else if (speed < 0) {reverse(abs(speed));}
+}
