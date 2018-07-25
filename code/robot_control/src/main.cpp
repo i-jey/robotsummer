@@ -14,7 +14,10 @@ enum MenuItems {
     edgeThresh, 
     firstBridgeLowerAngle, 
     firstBridgeUpperAngle, 
-    firstBridgeDelay
+    firstBridgeDelay, 
+    reverseTime1, 
+    drop1Time, 
+    forwardTime1, 
 };
 
 // Menu pins 
@@ -60,10 +63,10 @@ constexpr int left_push_button = PB3;
 
 // Motor 
 // How long to run motor in reverse when edge detected 
-int reverseTime1 = 250; 
+int edgeReverseTime1 = 500; 
 int reverseTime2 = 1500; 
 // Motor wait times while lowering bridge 
-int bridge1WaitTime = 2000; 
+int dropBridge1Time = 2000; 
 int bridge2WaitTime = 2000; 
 // How long to drive forward after dropping bridge 
 int forwardDriveTime1 = 2000; 
@@ -74,10 +77,10 @@ int rightRotateDelay = 500;
 
 // Bridge 
 int edgeThreshold = 500; 
-int bridge1LowerAngle = 40; 
-int bridge1UpperAngle = 140; 
-int bridge1Delay = 500; 
-Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, 40, 140); 
+int bridge1LowerAngle = 47; 
+int bridge1UpperAngle = 110; 
+int bridge1Delay = dropBridge1Time; 
+Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
 BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, 500, 500); 
 
 // PID constants
@@ -88,7 +91,7 @@ int gain = 0;
 int qrdThreshold = 0; 
 
 // Start state and speed
-int motorStartState = 20; 
+int motorStartState = 0; 
 int defaultSpeed; 
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
@@ -96,7 +99,7 @@ TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD);
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
 Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
 MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
-    pidControl, qrdThreshold, gain, p, i, d, reverseTime1, reverseTime2, bridge1WaitTime, 
+    pidControl, qrdThreshold, gain, p, i, d, edgeReverseTime1, reverseTime2, dropBridge1Time, 
     bridge2WaitTime, forwardDriveTime1, forwardDriveTime2, leftRotateDelay, rightRotateDelay); 
 
 // Claw 
@@ -183,6 +186,11 @@ void initializeFromEEPROM() {
     bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); 
     bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); 
     bridge1Delay = readFromEEPROM(MenuItems::firstBridgeDelay); 
+
+    // Bridge sequence values 
+    edgeReverseTime1 = readFromEEPROM(MenuItems::reverseTime1); 
+    dropBridge1Time = readFromEEPROM(MenuItems::drop1Time); 
+    forwardDriveTime1 = readFromEEPROM(MenuItems::forwardTime1); 
 }
 
 int optionState = 0; 
@@ -262,9 +270,9 @@ void bridgeMenu() {
 
     oled.print("Bridge Menu", 0, 0); 
     oled.print("Thresh: ", 0, 10); 
-    oled.print("B1L: ", 0, 20); 
-    oled.print("B1U: ", 0, 30); 
-    oled.print("B1D: ", 0, 40); 
+    oled.print("Reverse times: ", 0, 20); 
+    oled.print("drop bridge time: ", 0, 30); 
+    oled.print("over bridge time: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(100); // Debouncing delay 
@@ -285,9 +293,9 @@ void bridgeMenu() {
     oled.printNumI(edgeThreshold, RIGHT, 10); 
     oled.printNumI(bridge.getLeftEdgeReading(), 45, 10); 
     oled.printNumI(bridge.getRightEdgeReading(), 75, 10); 
-    oled.printNumI(bridge1LowerAngle, RIGHT, 20);
-    oled.printNumI(bridge1UpperAngle, RIGHT, 30); 
-    oled.printNumI(bridge1Delay, RIGHT, 40); 
+    oled.printNumI(edgeReverseTime1, RIGHT, 20);
+    oled.printNumI(dropBridge1Time, RIGHT, 30); 
+    oled.printNumI(forwardDriveTime1, RIGHT, 40); 
 
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -299,19 +307,19 @@ void bridgeMenu() {
                 bridge.updateThreshold(edgeThreshold); 
                 break; 
             case 1: 
-                bridge1LowerAngle = potVal * 180 / 4096; 
-                writeToEEPROM(MenuItems::firstBridgeLowerAngle, bridge1LowerAngle);
-                bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle); 
+                edgeReverseTime1 = potVal; 
+                writeToEEPROM(MenuItems::reverseTime1, edgeReverseTime1);
+                motorControl.updateReverseTime1(edgeReverseTime1); 
                 break; 
             case 2: 
-                bridge1UpperAngle = potVal * 180 / 4096; 
-                writeToEEPROM(MenuItems::firstBridgeUpperAngle, bridge1UpperAngle); 
-                bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle); 
+                dropBridge1Time = potVal; 
+                writeToEEPROM(MenuItems::drop1Time, dropBridge1Time); 
+                motorControl.updateDropBridge1Time(dropBridge1Time);
                 break; 
             case 3: 
-                bridge1Delay = potVal; 
-                writeToEEPROM(MenuItems::firstBridgeDelay, bridge1Delay); 
-                bridgeSequence.updateDelayTime1(potVal);
+                forwardDriveTime1 = potVal; 
+                writeToEEPROM(MenuItems::forwardTime1, forwardDriveTime1); 
+                motorControl.updateForwardDrive1(forwardDriveTime1);
                 break; 
             default:
                 break; 
@@ -347,7 +355,7 @@ void loop() {
 
         if (temp==1) {
             // Change to bridge sequence motor state, reverse time = 100
-            motorControl.stateOverride(10, reverseTime1);
+            motorControl.stateOverride(10, edgeReverseTime1);
             temp = 0;
         }
     }

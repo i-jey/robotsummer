@@ -56,8 +56,8 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-    Serial.print("L: "); Serial.println(speedLeft); 
-    Serial.print("R: "); Serial.println(speedRight); 
+    // Serial.print("L: "); Serial.println(speedLeft); 
+    // Serial.print("R: "); Serial.println(speedRight); 
     // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
     // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
@@ -141,11 +141,11 @@ void MotorControl::poll() {
             break; 
         case 10: 
             // Edge detected, reverse
-            continuousReverse();
+            // continuousReverse();
 
-            // UNCOMMENT this if continuousreverse isn't working
-            // leftMotor.write(-80); 
-            // rightMotor.write(-80); 
+            // UNCOMMENT this if continuous reverse isn't working
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(-defaultSpeed); 
 
             if (millis() > delay) { 
                 state++; 
@@ -274,6 +274,17 @@ void MotorControl::updateD(int newD) {
     dVal = newD; 
 }
 
+void MotorControl::updateReverseTime1(int newTime)  {
+    reverseTime1 = newTime; 
+}
+
+void MotorControl::updateDropBridge1Time(int newTime) { 
+    bridge1WaitTime = newTime; 
+}
+
+void MotorControl::updateForwardDrive1(int newTime) { 
+    forwardDriveTime1 = newTime; 
+}
 //// High level motor control functions //// 
 
 void MotorControl::continuousForward() { 

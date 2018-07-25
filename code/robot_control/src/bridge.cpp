@@ -17,6 +17,8 @@ bool Bridge::detectEdge() {
     int leftReading = getLeftEdgeReading(); 
     int rightReading = getRightEdgeReading(); 
 
+    Serial.println(leftReading); 
+    Serial.println(rightReading); 
     if (leftReading > QRD_THRESHOLD && rightReading > QRD_THRESHOLD) { 
         return true; 
     }

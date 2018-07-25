@@ -62,6 +62,9 @@ class MotorControl {
         void updateP(int newP); 
         void updateI(int newI); 
         void updateD(int newD); 
+        void updateReverseTime1(int newTime); 
+        void updateDropBridge1Time(int newTime); 
+        void updateForwardDrive1(int newTime); 
 };
 
 #endif

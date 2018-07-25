@@ -29,8 +29,8 @@ void BridgeSequence::poll() {
             delay = millis() + 50; 
             
             if (angle == bridge.firstBridgeLowerAngle) { 
+                onEdge = false;
                 state++; 
-                onEdge = 0;
                 delay = millis() + bridge1Delay;
             }
             break; 
