@@ -9,7 +9,7 @@ BridgeSequence::BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Dela
     this->bridge1Delay = bridge1Delay;
     this->bridge2Delay = bridge2Delay;
     this->rotateDelay = rotateDelay;
-    this->angle = bridge.updateFirstBridgeUpperAngle; 
+    this->angle = bridge.firstBridgeUpperAngle; 
 }
 
 void BridgeSequence::poll() { 
@@ -27,7 +27,7 @@ void BridgeSequence::poll() {
                 temp = 1; 
             }
             delay = millis() + 50; 
-            // change to variable in a sec
+            
             if (angle == bridge.firstBridgeLowerAngle) { 
                 state++; 
                 onEdge = 0;

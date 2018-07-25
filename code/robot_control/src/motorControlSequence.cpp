@@ -142,6 +142,11 @@ void MotorControl::poll() {
         case 10: 
             // Edge detected, reverse
             continuousReverse();
+
+            // UNCOMMENT this if continuousreverse isn't working
+            // leftMotor.write(-80); 
+            // rightMotor.write(-80); 
+
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 
@@ -170,8 +175,8 @@ void MotorControl::poll() {
             leftMotor.write(defaultSpeed); 
             rightMotor.write(defaultSpeed);
             if (millis() > delay) { 
-                // CHANGE THE DEFAULT STATE, 0 for testing for now
-                state = 2; 
+                // CHANGE THE DEFAULT STATE, 20 for testing for now
+                state = 20; 
             } 
             break;
         case 20: 

@@ -63,8 +63,8 @@ constexpr int left_push_button = PB3;
 int reverseTime1 = 250; 
 int reverseTime2 = 1500; 
 // Motor wait times while lowering bridge 
-int bridge1WaitTime = 7500; 
-int bridge2WaitTime = 7500; 
+int bridge1WaitTime = 2000; 
+int bridge2WaitTime = 2000; 
 // How long to drive forward after dropping bridge 
 int forwardDriveTime1 = 2000; 
 int forwardDriveTime2 = 2000; 
