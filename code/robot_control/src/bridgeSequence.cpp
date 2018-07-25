@@ -19,13 +19,13 @@ void BridgeSequence::poll() {
         case 0: 
             if (bridge.detectEdge()) { 
                 angle--; 
-                bridge.lowerBridge1(angle); 
-                delay = millis() + 5; 
+                bridge.lowerBridge1(); 
+                delay = millis() + 50; 
                 temp = 1; 
             }
             delay = millis() + 50; 
             // change to variable in a sec
-            if (angle == 47) { 
+            if (angle == bridge.firstBridgeLowerAngle) { 
                 state++; 
                 delay = millis() + bridge1Delay;
             }
@@ -33,6 +33,8 @@ void BridgeSequence::poll() {
         case 1: 
             bridge.raiseBridge1(); 
             state++; 
+
+            state = 0; // TEMP
             break;
         case 2: 
             if (bridge.detectEdge()) { 
@@ -55,4 +57,16 @@ void BridgeSequence::poll() {
         default: 
             break; 
     }
+}
+
+void BridgeSequence::updateDelayTime1(int newTime) { 
+    this->bridge1Delay = newTime; 
+}
+
+void BridgeSequence::updateDelayTime2(int newTime) { 
+    this->bridge2Delay = newTime; 
+}
+
+void BridgeSequence::updateRotateTime(int newTime) { 
+    this->rotateDelay = newTime; 
 }

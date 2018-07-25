@@ -1,44 +1,33 @@
 #include "includes.h"
 #include "bridge.h"
 
-constexpr int OFF_EDGE_THRESHOLD = 400; 
-
 Bridge::Bridge(){}; // Default constructor otherwise C++ whines
-Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int QRD_THRESHOLD) { 
+Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int QRD_THRESHOLD, int firstBridgeLowerAngle, int firstBridgeUpperAngle) { 
     bridgeServo1.attach(bridgePin1); 
     bridgeServo2.attach(bridgePin2); 
     this->QRDLeft = QRDLeftPin; 
     this->QRDRight = QRDRightPin;
     this->QRD_THRESHOLD = QRD_THRESHOLD; 
-    bridgeServo1.write(140); 
+    this->firstBridgeLowerAngle = firstBridgeLowerAngle; 
+    this->firstBridgeUpperAngle = firstBridgeUpperAngle;
+    bridgeServo1.write(firstBridgeUpperAngle);
 }
 
 bool Bridge::detectEdge() { 
-    int leftReading = analogRead(QRDLeft); 
-    int rightReading = analogRead(QRDRight); 
-    Serial.print("Left: ");
-    Serial.println(leftReading);  
-    Serial.print("Right: ");
-    Serial.println(rightReading); 
+    int leftReading = getLeftEdgeReading(); 
+    int rightReading = getRightEdgeReading(); 
 
-    if (analogRead(QRDLeft) + analogRead(QRDRight) < 2*OFF_EDGE_THRESHOLD) { 
+    if (leftReading + rightReading < 2*QRD_THRESHOLD) { 
         return true; 
     }
     return false; 
 }
-void Bridge::lowerBridge1(int angle) { 
-    bridgeServo1.write(angle); 
-    // if (detectEdge()) { 
-    //     // Need to test incrementally lowering bridge 
-    //     // Can use for loop with a delay(), but is there a
-    //     // better non-blocking way?
-    //     bridgeServo1.write(47); 
-    //     return true; 
-    // }
+void Bridge::lowerBridge1() { 
+    bridgeServo1.write(firstBridgeLowerAngle); 
 }
 
 void Bridge::raiseBridge1() { 
-    bridgeServo1.write(140); 
+    bridgeServo1.write(firstBridgeUpperAngle); 
 }
 
 bool Bridge::lowerBoth() { 
@@ -53,4 +42,26 @@ bool Bridge::lowerBoth() {
 void Bridge::raiseBoth() { 
     bridgeServo1.write(140); 
     bridgeServo2.write(140); 
+}
+
+int Bridge::getLeftEdgeReading() { 
+    return analogRead(QRDLeft); 
+}
+
+int Bridge::getRightEdgeReading() { 
+    return analogRead(QRDRight); 
+}
+
+void Bridge::updateThreshold(int newThreshold) { 
+    this->QRD_THRESHOLD = newThreshold; 
+}
+
+void Bridge::updateFirstBridgeLowerAngle(int newAngle) { 
+    this->firstBridgeLowerAngle = newAngle; 
+    lowerBridge1(); 
+}
+
+void Bridge::updateFirstBridgeUpperAngle(int newAngle) { 
+    this->firstBridgeUpperAngle = newAngle; 
+    raiseBridge1(); 
 }

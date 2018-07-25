@@ -17,6 +17,9 @@ class BridgeSequence {
         BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay); 
         void reset(); 
         void poll(); 
+        void updateDelayTime1(int newTime); 
+        void updateDelayTime2(int newTime); 
+        void updateRotateTime(int newTime); 
 }; 
 
 #endif
