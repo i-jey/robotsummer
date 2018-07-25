@@ -3,7 +3,8 @@
 MotorControl::MotorControl(){};
 MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
     TapeFollow &pidControl, int qrdThreshold, int gain, int p, int i, int d, int reverseTime1, int reverseTime2, 
-    int bridge1WaitTime, int bridge2WaitTime, int forwardDriveTime1, int forwardDriveTime2) { 
+    int bridge1WaitTime, int bridge2WaitTime, int forwardDriveTime1, int forwardDriveTime2, 
+    int leftRotate90Delay, int rightRotate90Delay) { 
 
     // FYI, the ampersand &, is a pointer (i.e as opposed to making a copy of the object
     // this means we will be referencing the actual object that was passed in)
@@ -23,6 +24,9 @@ MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMoto
 
     this->forwardDriveTime1 = forwardDriveTime1; 
     this->forwardDriveTime2 = forwardDriveTime2; 
+
+    this->leftRotate90Delay = leftRotate90Delay; 
+    this->rightRotate90Delay = rightRotate90Delay; 
 
     this->qrdThreshold = qrdThreshold;  
     this->gain = gain; 
@@ -57,31 +61,88 @@ void MotorControl::poll() {
     // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
     // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
-        case 0: 
-            // This state is only meant for basic testing
-            leftMotor.write(speedLeft); 
-            rightMotor.write(speedRight); 
+        /** 
+         * Cases:
+         * 0 - 4, basic functions for testing
+         * 5-9, pid and get first ewok, turn back
+         * 10-13, first bridge deployment and crossing
+         **/
+        case 0:  
+            continuousForward(); 
             break; 
         case 1: 
-            // This state is only meant for basic testing 
-            leftMotor.write(-speedLeft); 
-            rightMotor.write(-speedRight); 
+            continuousReverse();
             break; 
         case 2:
-            // Tape following 
-            pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed); 
+            // Tape following
+            pid(); 
+            break; 
+        case 3: 
+            rotateLeft();  
 
-            updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
-            updateSpeedRight(pidControl.getRightMotorSpeed()); 
-            
-            leftMotor.write(speedLeft); 
-            rightMotor.write(speedRight); 
+            if (millis() > delay) { 
+                state = 20; 
+            }
+            break; 
+        case 4: 
+            rotateRight();
 
+            if (millis() > delay) { 
+                state = 20; 
+            }
+            break;
+        case 5: 
+            pid(); 
+            if (firstEwok) { 
+                delay = millis() + 500; 
+                state++; 
+            }
+            break; 
+        case 6: 
+            // Rotate 180 degree to go back home
+            rotateLeft(); 
+            if (millis() > delay) { 
+                delay = millis() + 500; 
+                state++; 
+            }
+            break; 
+        case 7: 
+            // Rotation complete, try to find tape again
+
+            // Stop sweep once 180 time is up or left qrd is on tape
+            if (pidControl.getLeftQRDReading()) { 
+                state+=2; 
+            }
+            else if (millis() > delay) { 
+                delay = millis() + 500; 
+                state++; 
+            }
+            // Sweep left
+            else { 
+                rotateLeft(); 
+            }
+            break; 
+        case 8: 
+            // Stop sweep once 180 time is up or right qrd is on tape 
+            if (pidControl.getRightQRDReading()) { 
+                state++; 
+            }
+            else if (millis() > delay) { 
+                delay = millis() + 1000; 
+                state++; 
+            }
+            // Sweep right 
+            else { 
+                rotateRight();
+            }
+            break; 
+        case 9: 
+            pid(); 
             break; 
         case 10: 
             // Edge detected, stop
-            leftMotor.reverse(255); 
-            rightMotor.reverse(255);
+            leftMotor.write(0); 
+            rightMotor.write(0);
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 
@@ -89,8 +150,8 @@ void MotorControl::poll() {
             break; 
         case 11: 
             // wait for bridge to lower
-            leftMotor.forward(0); 
-            rightMotor.forward(0); 
+            leftMotor.write(0); 
+            rightMotor.write(0); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + reverseTime1; 
@@ -98,8 +159,8 @@ void MotorControl::poll() {
             break;
         case 12: 
             // Reverse to drop bridge 
-            leftMotor.reverse(speedLeft); 
-            rightMotor.reverse(speedRight); 
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(-defaultSpeed); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + forwardDriveTime1; 
@@ -107,8 +168,8 @@ void MotorControl::poll() {
             break; 
         case 13: 
             // CHANGE THIS later
-            leftMotor.forward(150); 
-            rightMotor.forward(150);
+            leftMotor.write(defaultSpeed); 
+            rightMotor.write(defaultSpeed);
             if (millis() > delay) { 
                 // CHANGE THE DEFAULT STATE, 0 for testing for now
                 state = 2; 
@@ -116,8 +177,8 @@ void MotorControl::poll() {
             break;
         case 20: 
             // Stop motors until state changes (ie. from IR class?)
-            leftMotor.forward(0); 
-            rightMotor.forward(0); 
+            leftMotor.write(0); 
+            rightMotor.write(0); 
             break; 
         case 30: 
             // TODO
@@ -148,7 +209,7 @@ void MotorControl::stateOverride(int specialState, int delay) {
     *   50 : Basket sequence
     */
    state = specialState;
-   this->delay = delay; 
+   this->delay = millis() + delay; 
 }
 
 /** 
@@ -209,7 +270,34 @@ void MotorControl::updateD(int newD) {
     dVal = newD; 
 }
 
+//// High level motor control functions //// 
 
+void MotorControl::continuousForward() { 
+    leftMotor.write(defaultSpeed); 
+    rightMotor.write(defaultSpeed); 
+}
 
+void MotorControl::continuousReverse() { 
+    leftMotor.write(-defaultSpeed); 
+    rightMotor.write(-defaultSpeed); 
+}   
 
+void MotorControl::pid() { 
+    pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed); 
 
+    updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
+    updateSpeedRight(pidControl.getRightMotorSpeed()); 
+    
+    leftMotor.write(speedLeft); 
+    rightMotor.write(speedRight); 
+}
+
+void MotorControl::rotateLeft() { 
+    leftMotor.write(-defaultSpeed); 
+    rightMotor.write(defaultSpeed);
+}
+
+void MotorControl::rotateRight() { 
+    leftMotor.write(defaultSpeed); 
+    rightMotor.write(-defaultSpeed);
+}

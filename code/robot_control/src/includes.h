@@ -2,7 +2,8 @@
 #define INCLUDES_H 
 
 // Global variables 
-extern int temp; 
+extern int temp;
+extern bool firstEwok;  
 constexpr float wheelDiameter = 6.14;
 
 // libraries 
