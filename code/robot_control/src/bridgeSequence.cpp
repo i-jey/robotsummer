@@ -1,13 +1,15 @@
 #include "includes.h"
 #include "bridgeSequence.h"
 
+bool onEdge = false; 
+
 BridgeSequence::BridgeSequence(){};
 BridgeSequence::BridgeSequence(Bridge &bridge, int bridge1Delay, int bridge2Delay, int rotateDelay) { 
     this->bridge = bridge; 
     this->bridge1Delay = bridge1Delay;
     this->bridge2Delay = bridge2Delay;
     this->rotateDelay = rotateDelay;
-    this->angle = 140; 
+    this->angle = bridge.updateFirstBridgeUpperAngle; 
 }
 
 void BridgeSequence::poll() { 
@@ -17,9 +19,10 @@ void BridgeSequence::poll() {
 
     switch(state) { 
         case 0: 
-            if (bridge.detectEdge()) { 
+            if (bridge.detectEdge() || onEdge) { 
+                onEdge = true; 
                 angle--; 
-                bridge.lowerBridge1(); 
+                bridge.lowerBridge1(angle); 
                 delay = millis() + 50; 
                 temp = 1; 
             }
@@ -27,17 +30,22 @@ void BridgeSequence::poll() {
             // change to variable in a sec
             if (angle == bridge.firstBridgeLowerAngle) { 
                 state++; 
+                onEdge = 0;
                 delay = millis() + bridge1Delay;
             }
             break; 
         case 1: 
             bridge.raiseBridge1(); 
-            state++; 
+            
+            // angle = bridge.secondBridgeUpperAngle;
+            // state++; 
 
-            state = 0; // TEMP
+            // TEMPORARY
+            angle = bridge.firstBridgeUpperAngle;
+            state = 0; 
             break;
         case 2: 
-            if (bridge.detectEdge()) { 
+            if (bridge.detectEdge() || onEdge) { 
                 // second edge detected 
                 // add global flag to start custom movement and edge navigation
                 delay = millis() + rotateDelay;

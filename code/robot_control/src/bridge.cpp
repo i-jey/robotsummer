@@ -17,13 +17,13 @@ bool Bridge::detectEdge() {
     int leftReading = getLeftEdgeReading(); 
     int rightReading = getRightEdgeReading(); 
 
-    if (leftReading + rightReading < 2*QRD_THRESHOLD) { 
+    if (leftReading > QRD_THRESHOLD && rightReading > QRD_THRESHOLD) { 
         return true; 
     }
     return false; 
 }
-void Bridge::lowerBridge1() { 
-    bridgeServo1.write(firstBridgeLowerAngle); 
+void Bridge::lowerBridge1(int angle) { 
+    bridgeServo1.write(angle); 
 }
 
 void Bridge::raiseBridge1() { 
@@ -58,7 +58,7 @@ void Bridge::updateThreshold(int newThreshold) {
 
 void Bridge::updateFirstBridgeLowerAngle(int newAngle) { 
     this->firstBridgeLowerAngle = newAngle; 
-    lowerBridge1(); 
+    lowerBridge1(newAngle); 
 }
 
 void Bridge::updateFirstBridgeUpperAngle(int newAngle) { 

@@ -60,7 +60,7 @@ constexpr int left_push_button = PB3;
 
 // Motor 
 // How long to run motor in reverse when edge detected 
-int reverseTime1 = 1500; 
+int reverseTime1 = 250; 
 int reverseTime2 = 1500; 
 // Motor wait times while lowering bridge 
 int bridge1WaitTime = 7500; 
@@ -88,7 +88,7 @@ int gain = 0;
 int qrdThreshold = 0; 
 
 // Start state and speed
-int motorStartState = 2; 
+int motorStartState = 20; 
 int defaultSpeed; 
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
@@ -151,6 +151,7 @@ void setup() {
     pinMode(oled_sda, INPUT_PULLUP); 
     pinMode(startBtn, INPUT_PULLDOWN);
     pinMode(menuPlus, INPUT_PULLDOWN); 
+    pinMode(menuToggle, INPUT_PULLDOWN);
     pinMode(menuMinus, INPUT_PULLDOWN); 
     pinMode(menuPot, INPUT); 
     start = digitalRead(startBtn);  
@@ -164,13 +165,24 @@ void writeToEEPROM(int loc, int val) {
     EEPROM.write(loc*2, val>>8);  
 }
 
+int16_t readFromEEPROM(int loc) { 
+    return (EEPROM.read(loc*2)<<8)|EEPROM.read(loc*2+1);
+}
+
 void initializeFromEEPROM() { 
-    p = EEPROM.read(MenuItems::menu_p);
+    // PID values
+    p = readFromEEPROM(MenuItems::menu_p);
     i = 0; 
-    d = EEPROM.read(MenuItems::menu_d);
-    gain = EEPROM.read(MenuItems::menu_gain);
-    qrdThreshold = EEPROM.read(MenuItems::menu_qrdThreshold); 
-    defaultSpeed = EEPROM.read(MenuItems::menu_defaultSpeed);
+    d = readFromEEPROM(MenuItems::menu_d);
+    gain = readFromEEPROM(MenuItems::menu_gain);
+    qrdThreshold = readFromEEPROM(MenuItems::menu_qrdThreshold); 
+    defaultSpeed = readFromEEPROM(MenuItems::menu_defaultSpeed);
+
+    // Bridge values 
+    edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); 
+    bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); 
+    bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); 
+    bridge1Delay = readFromEEPROM(MenuItems::firstBridgeDelay); 
 }
 
 int optionState = 0; 
@@ -187,7 +199,7 @@ void pidMenu() {
     delay(100); // Debouncing delay 
 
     if (digitalRead(menuPlus)) {
-        if (optionState == 4)  {
+        if (optionState >= 4)  {
             optionState = 0;
         }
         else {
@@ -200,8 +212,8 @@ void pidMenu() {
     oled.printNumI(p, RIGHT, 10);
     oled.printNumI(d, RIGHT, 20);
     oled.printNumI(gain, RIGHT, 30); 
-    oled.printNumI(pidControl.getLeftQRDReading(), 30, 40);
-    oled.printNumI(pidControl.getRightQRDReading(), 60, 40); 
+    oled.printNumI(pidControl.getLeftQRDReading(), 45, 40);
+    oled.printNumI(pidControl.getRightQRDReading(), 75, 40); 
     oled.printNumI(qrdThreshold, RIGHT, 40);
     oled.printNumI(defaultSpeed, RIGHT, 50); 
     oled.print("<--", 45, (optionState+1)*10); 
@@ -258,7 +270,7 @@ void bridgeMenu() {
     delay(100); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
-        if (optionState == 3) { 
+        if (optionState >= 3) { 
             optionState = 0; 
         }
         else { 
@@ -271,8 +283,8 @@ void bridgeMenu() {
 
     // Print current values 
     oled.printNumI(edgeThreshold, RIGHT, 10); 
-    oled.printNumI(bridge.getLeftEdgeReading(), 30, 10); 
-    oled.printNumI(bridge.getRightEdgeReading(), 60, 10); 
+    oled.printNumI(bridge.getLeftEdgeReading(), 45, 10); 
+    oled.printNumI(bridge.getRightEdgeReading(), 75, 10); 
     oled.printNumI(bridge1LowerAngle, RIGHT, 20);
     oled.printNumI(bridge1UpperAngle, RIGHT, 30); 
     oled.printNumI(bridge1Delay, RIGHT, 40); 
@@ -283,18 +295,22 @@ void bridgeMenu() {
         switch (optionState) { 
             case 0:
                 edgeThreshold = potVal; 
+                writeToEEPROM(MenuItems::edgeThresh, edgeThreshold); 
                 bridge.updateThreshold(edgeThreshold); 
                 break; 
             case 1: 
                 bridge1LowerAngle = potVal * 180 / 4096; 
+                writeToEEPROM(MenuItems::firstBridgeLowerAngle, bridge1LowerAngle);
                 bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle); 
                 break; 
             case 2: 
                 bridge1UpperAngle = potVal * 180 / 4096; 
+                writeToEEPROM(MenuItems::firstBridgeUpperAngle, bridge1UpperAngle); 
                 bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle); 
                 break; 
             case 3: 
                 bridge1Delay = potVal; 
+                writeToEEPROM(MenuItems::firstBridgeDelay, bridge1Delay); 
                 bridgeSequence.updateDelayTime1(potVal);
                 break; 
             default:
@@ -307,24 +323,31 @@ void bridgeMenu() {
 }
 
 bool initialize = true; 
+bool switchMenus = false; 
 void loop() { 
     start = digitalRead(startBtn); 
     if (!start) { 
         if (initialize) {initializeFromEEPROM(); initialize=false;}
-        
+        if (digitalRead(menuToggle)) {switchMenus = !switchMenus;}
         oled.clrScr(); 
-        // pidMenu(); 
-        bridgeMenu();
+        
+        if (switchMenus) { 
+            pidMenu(); 
+        }
+        else { 
+            bridgeMenu();   
+        }
         oled.update();  
     }
     else {
-        // motorControl.poll(); 
+        motorControl.poll(); 
         bridgeSequence.poll(); 
         // rightClaw.poll(); 
         // leftClaw.poll(); 
 
         if (temp==1) {
-            motorControl.stateOverride(10, 0);
+            // Change to bridge sequence motor state, reverse time = 100
+            motorControl.stateOverride(10, reverseTime1);
             temp = 0;
         }
     }

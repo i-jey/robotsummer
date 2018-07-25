@@ -132,7 +132,7 @@ void MotorControl::poll() {
                 state++; 
             }
             // Sweep right 
-            else { 
+            else {      
                 rotateRight();
             }
             break; 
@@ -140,9 +140,8 @@ void MotorControl::poll() {
             pid(); 
             break; 
         case 10: 
-            // Edge detected, stop
-            leftMotor.write(0); 
-            rightMotor.write(0);
+            // Edge detected, reverse
+            continuousReverse();
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 

@@ -8,16 +8,13 @@ class Bridge {
         uint8_t QRDLeft; 
         uint8_t QRDRight; 
         uint8_t QRD_THRESHOLD; 
-        uint8_t firstBridgeUpperAngle; 
-        uint8_t secondBridgeLowerAngle; 
-        uint8_t secondBridgeUpperAngle; 
 
     public: 
         Bridge(); 
         Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
                 int QRD_THRESHOLD, int firstBridgeLowerAngle, int firstBridgeUpperAngle); 
         bool detectEdge(); 
-        void lowerBridge1(); 
+        void lowerBridge1(int angle); 
         void raiseBridge1(); 
         bool lowerBoth(); 
         void raiseBoth(); 
@@ -26,8 +23,10 @@ class Bridge {
         void updateThreshold(int newThreshold); 
         void updateFirstBridgeLowerAngle(int newAngle); 
         void updateFirstBridgeUpperAngle(int newAngle); 
-
+        uint8_t firstBridgeUpperAngle; 
         uint8_t firstBridgeLowerAngle; 
+        uint8_t secondBridgeLowerAngle; 
+        uint8_t secondBridgeUpperAngle; 
 };
 
 #endif
