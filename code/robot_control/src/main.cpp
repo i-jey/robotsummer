@@ -381,7 +381,8 @@ void loop() {
              // grace period before it starts to go 
             delay(1000); 
 
-            motorControl.stateOverride(2, 0); 
+            motorControl.stateOverride(5, 0); 
+            firstEwok = false; 
         }
         motorControl.poll(); 
         // bridgeSequence.poll(); 

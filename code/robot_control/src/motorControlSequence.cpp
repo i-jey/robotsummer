@@ -46,6 +46,8 @@ void MotorControl::reset() {
     delay = millis(); 
 }
 
+
+
 void MotorControl::poll() { 
     /*  Define motor states
     *   0 : Continuous forward drive at a desired speed 
@@ -56,8 +58,9 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-    Serial.print("L: "); Serial.println(speedLeft); 
-    Serial.print("R: "); Serial.println(speedRight); 
+    // Serial.print("L: "); Serial.println(speedLeft); 
+    // Serial.print("R: "); Serial.println(speedRight); 
+    Serial.print("State: "); Serial.println(state); 
     // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
     // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
@@ -93,13 +96,20 @@ void MotorControl::poll() {
             break;
         case 5: 
             pid(); 
-            if (firstEwok) { 
-                delay = millis() + 250; 
+            if (firstEwok) {  
                 state++; 
+                delay = millis() + 2500;
             }
             break; 
-        case 6: 
-            // Rotate until tape is found
+        case 6:
+            leftMotor.write(0);
+            rightMotor.write(0);
+            Serial.println("Stopping.");
+            if (millis() > delay) {
+                state++;
+            }
+        case 7: 
+            // Rotate until tape is found        
             rotateLeft(); 
             Serial.println("rotating"); 
             if (pidControl.getLeftQRDReading() > qrdThreshold && millis() > delay) { 
@@ -110,6 +120,7 @@ void MotorControl::poll() {
                 rightMotor.write(defaultSpeed-5);
                 state=99; 
             }
+            
             break; 
         // case 7: 
         //     // Rotation complete, try to find tape again
@@ -141,10 +152,10 @@ void MotorControl::poll() {
         //         rotateRight();
         //     }
         //     break; 
-        case 7: 
-            Serial.println("PIDing"); 
-            pid(); 
-            break; 
+        // case 7: 
+        //     Serial.println("PIDing"); 
+        //     pid(); 
+        //     break; 
         case 10: 
             // Edge detected, reverse
             leftMotor.write(-defaultSpeed); 
@@ -320,8 +331,8 @@ void MotorControl::pid() {
 }
 
 void MotorControl::rotateLeft() { 
-    leftMotor.write(-defaultSpeed); 
-    rightMotor.write(defaultSpeed);
+    leftMotor.write(-200); 
+    rightMotor.write(200);
 }
 
 void MotorControl::rotateRight() { 
