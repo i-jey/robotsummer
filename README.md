@@ -42,6 +42,17 @@ Electrical Circuits
 ## High-side driver H-Bridge
 ![](https://raw.githubusercontent.com/i-jey/robotsummer/master/images/high-side-driver-H-bridge.PNG)
 
+Wiring Check
+===
+1. Left Panel
+2. Right Panel
+3. Main Ground
+4. 16V Rail
+5. Control Panel Signal
+6. Conntrol Panel Power
+7. Potentiometer 
+(FINISHED EDITING)
+
 Tricks
 ===
 1. Capacitors between power and ground prevent the bluepill from turning off when the H-bridges turn on. A 470uF capacitor keeps the bluepill powered at 3.3V for long enough when the voltage of the rest of the battery drops due to the sudden current draw of the h-bridges.
