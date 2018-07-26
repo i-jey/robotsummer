@@ -251,22 +251,23 @@ void pidMenu() {
                 break; 
             case MenuItems::menu_d: 
                 d = potVal; 
-                writeToEEPROM(MenuItems::menu_d, p); 
+                writeToEEPROM(MenuItems::menu_d, d); 
                 motorControl.updateD(d); 
                 break; 
             case MenuItems::menu_gain: 
                 gain = potVal; 
-                writeToEEPROM(MenuItems::menu_gain, p); 
+                writeToEEPROM(MenuItems::menu_gain, gain); 
                 motorControl.updateGain(gain);
                 break; 
             case MenuItems::menu_qrdThreshold: 
                 qrdThreshold = 10*potVal; 
-                writeToEEPROM(MenuItems::menu_qrdThreshold, p); 
+                writeToEEPROM(MenuItems::menu_qrdThreshold, qrdThreshold); 
                 motorControl.updateThreshold(qrdThreshold);
+                pidControl.updateThreshold(qrdThreshold); 
                 break; 
             case MenuItems::menu_defaultSpeed: 
                 defaultSpeed = potVal; 
-                writeToEEPROM(MenuItems::menu_defaultSpeed, p); 
+                writeToEEPROM(MenuItems::menu_defaultSpeed, defaultSpeed); 
                 motorControl.updateDefaultSpeed(defaultSpeed); 
                 motorControl.updateSpeed(defaultSpeed); 
                 break; 
@@ -380,12 +381,12 @@ void loop() {
              // grace period before it starts to go 
             delay(1000); 
 
-            motorControl.stateOverride(6, 0); 
+            motorControl.stateOverride(2, 0); 
         }
         motorControl.poll(); 
         // bridgeSequence.poll(); 
         
-        // rightClaw.poll(); 
+        rightClaw.poll(); 
         // leftClaw.poll(); 
 
         if (temp==1) {

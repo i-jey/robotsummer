@@ -28,6 +28,7 @@ class TapeFollow {
         bool leftOnTape(); 
         bool rightOnTape(); 
         void updateSpeed(int newSpeed); 
+        void updateThreshold(int newThreshold); 
 }; 
 
 #endif

@@ -78,7 +78,8 @@ int TapeFollow::getRightQRDReading() {
 }
 
 bool TapeFollow::leftOnTape() { 
-    return getLeftQRDReading() > qrdThreshold;
+    // Serial.print(getLeftQRDReading()); Serial.print(" "); Serial.println(this->qrdThreshold); 
+    return getLeftQRDReading() > this->qrdThreshold;
 }
 
 bool TapeFollow::rightOnTape() { 
@@ -87,4 +88,9 @@ bool TapeFollow::rightOnTape() {
 
 void TapeFollow::updateSpeed(int newSpeed) { 
     this->defaultMotorSpeed = newSpeed; 
+}
+
+void TapeFollow::updateThreshold(int newThreshold) { 
+    this->qrdThreshold = newThreshold; 
+    // Serial.print(qrdThreshold); Serial.print(" "); Serial.println(newThreshold); 
 }

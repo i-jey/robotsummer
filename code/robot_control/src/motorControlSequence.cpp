@@ -56,8 +56,8 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
-    // Serial.print("L: "); Serial.println(speedLeft); 
-    // Serial.print("R: "); Serial.println(speedRight); 
+    Serial.print("L: "); Serial.println(speedLeft); 
+    Serial.print("R: "); Serial.println(speedRight); 
     // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
     // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
@@ -94,7 +94,7 @@ void MotorControl::poll() {
         case 5: 
             pid(); 
             if (firstEwok) { 
-                delay = millis() + 500; 
+                delay = millis() + 250; 
                 state++; 
             }
             break; 
@@ -102,9 +102,13 @@ void MotorControl::poll() {
             // Rotate until tape is found
             rotateLeft(); 
             Serial.println("rotating"); 
-            if (pidControl.leftOnTape()) { 
-                delay = millis() + 500; 
-                state++; 
+            if (pidControl.getLeftQRDReading() > qrdThreshold && millis() > delay) { 
+                delay = millis();
+                // leftMotor.write(0); 
+                // rightMotor.write(0);  
+                leftMotor.write(defaultSpeed+5); 
+                rightMotor.write(defaultSpeed-5);
+                state=99; 
             }
             break; 
         // case 7: 
@@ -200,6 +204,9 @@ void MotorControl::poll() {
             // Once last ewok has been picked up, basket drop 
             // Reverse motors and raise basket in parallel, wait, drive forward
             break; 
+        case 99: 
+            // Hold whatever motor speeds are currently going
+            break; 
         default: 
             break; 
     }
@@ -217,7 +224,8 @@ void MotorControl::stateOverride(int specialState, int delay) {
     */
    state = specialState;
    this->delay = millis() + delay; 
-   Serial.print("millis: "); Serial.println(millis());     
+   Serial.print("millis: "); Serial.print(millis());
+   Serial.print(" state: "); Serial.println(state); 
 }
 
 /** 
