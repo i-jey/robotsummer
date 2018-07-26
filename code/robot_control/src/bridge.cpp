@@ -2,12 +2,12 @@
 #include "bridge.h"
 
 Bridge::Bridge(){}; // Default constructor otherwise C++ whines
-Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int QRD_THRESHOLD, int firstBridgeLowerAngle, int firstBridgeUpperAngle) { 
+Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle) { 
     bridgeServo1.attach(bridgePin1); 
     bridgeServo2.attach(bridgePin2); 
     this->QRDLeft = QRDLeftPin; 
     this->QRDRight = QRDRightPin;
-    this->QRD_THRESHOLD = QRD_THRESHOLD; 
+    this->qrdThreshold = qrdThreshold; 
     this->firstBridgeLowerAngle = firstBridgeLowerAngle; 
     this->firstBridgeUpperAngle = firstBridgeUpperAngle;
     bridgeServo1.write(firstBridgeUpperAngle);
@@ -17,9 +17,9 @@ bool Bridge::detectEdge() {
     int leftReading = getLeftEdgeReading(); 
     int rightReading = getRightEdgeReading(); 
 
-    Serial.println(leftReading); 
-    Serial.println(rightReading); 
-    if (leftReading > QRD_THRESHOLD && rightReading > QRD_THRESHOLD) { 
+    // Serial.println(leftReading); 
+    // Serial.println(rightReading); 
+    if (leftReading > qrdThreshold && rightReading > qrdThreshold) { 
         return true; 
     }
     return false; 
@@ -55,7 +55,7 @@ int Bridge::getRightEdgeReading() {
 }
 
 void Bridge::updateThreshold(int newThreshold) { 
-    this->QRD_THRESHOLD = newThreshold; 
+    qrdThreshold = newThreshold; 
 }
 
 void Bridge::updateFirstBridgeLowerAngle(int newAngle) { 

@@ -18,6 +18,8 @@ enum MenuItems {
     reverseTime1, 
     drop1Time, 
     forwardTime1, 
+    rotate1, 
+    rotate2,
 };
 
 // Menu pins 
@@ -74,6 +76,9 @@ int forwardDriveTime2 = 2000;
 // 90 degree turn delays 
 int leftRotateDelay = 500; 
 int rightRotateDelay = 500; 
+// Rotate times 
+int rotate90 = 100; 
+int rotate180 = 200; 
 
 // Bridge 
 int edgeThreshold = 500; 
@@ -91,8 +96,8 @@ int gain = 0;
 int qrdThreshold = 0; 
 
 // Start state and speed
-int motorStartState = 0; 
-int defaultSpeed; 
+int motorStartState = 20; 
+int defaultSpeed = 120; 
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
 // Initialize motor
@@ -101,6 +106,7 @@ Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
 MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
     pidControl, qrdThreshold, gain, p, i, d, edgeReverseTime1, reverseTime2, dropBridge1Time, 
     bridge2WaitTime, forwardDriveTime1, forwardDriveTime2, leftRotateDelay, rightRotateDelay); 
+MotorInit motorInit = MotorInit(); 
 
 // Claw 
 int leftClawCloseAngle = 140; 
@@ -138,9 +144,14 @@ void setup() {
     Serial.begin(9600); 
     
     // Initialize motor pins 
-    MotorInit motorInit = MotorInit(); 
     motorInit.init(); 
     
+    // Initialize qrds 
+    pinMode(left_edge_QRD, INPUT); 
+    pinMode(right_edge_QRD, INPUT); 
+    pinMode(left_pid_QRD, INPUT); 
+    pinMode(right_pid_QRD, INPUT); 
+
     // Initialize claw buttons
     pinMode(right_push_button, INPUT_PULLDOWN); 
     pinMode(left_push_button, INPUT_PULLDOWN); 
@@ -191,6 +202,9 @@ void initializeFromEEPROM() {
     edgeReverseTime1 = readFromEEPROM(MenuItems::reverseTime1); 
     dropBridge1Time = readFromEEPROM(MenuItems::drop1Time); 
     forwardDriveTime1 = readFromEEPROM(MenuItems::forwardTime1); 
+
+    rotate90 = readFromEEPROM(MenuItems::rotate1); 
+    rotate180 = readFromEEPROM(MenuItems::rotate2); 
 }
 
 int optionState = 0; 
@@ -273,12 +287,13 @@ void bridgeMenu() {
     oled.print("Reverse times: ", 0, 20); 
     oled.print("drop bridge time: ", 0, 30); 
     oled.print("over bridge time: ", 0, 40); 
+    oled.print("rotate time: ", 0, 50);
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(100); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
-        if (optionState >= 3) { 
+        if (optionState >= 4) { 
             optionState = 0; 
         }
         else { 
@@ -296,6 +311,7 @@ void bridgeMenu() {
     oled.printNumI(edgeReverseTime1, RIGHT, 20);
     oled.printNumI(dropBridge1Time, RIGHT, 30); 
     oled.printNumI(forwardDriveTime1, RIGHT, 40); 
+    oled.printNumI(rotate180, RIGHT, 50); 
 
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -321,6 +337,9 @@ void bridgeMenu() {
                 writeToEEPROM(MenuItems::forwardTime1, forwardDriveTime1); 
                 motorControl.updateForwardDrive1(forwardDriveTime1);
                 break; 
+            case 4: 
+                rotate180 = potVal; 
+                writeToEEPROM(MenuItems::rotate2, rotate180); 
             default:
                 break; 
         }
@@ -332,10 +351,14 @@ void bridgeMenu() {
 
 bool initialize = true; 
 bool switchMenus = false; 
+bool initMotors = true; 
 void loop() { 
     start = digitalRead(startBtn); 
     if (!start) { 
-        if (initialize) {initializeFromEEPROM(); initialize=false;}
+        if (initialize) {
+            initializeFromEEPROM(); 
+            initialize = false;
+        }
         if (digitalRead(menuToggle)) {switchMenus = !switchMenus;}
         oled.clrScr(); 
         
@@ -345,11 +368,23 @@ void loop() {
         else { 
             bridgeMenu();   
         }
+
         oled.update();  
+        initMotors = true; 
     }
     else {
+        if (initMotors) {
+            initMotors = false; 
+            motorInit.init();
+            
+             // grace period before it starts to go 
+            delay(1000); 
+
+            motorControl.stateOverride(6, 0); 
+        }
         motorControl.poll(); 
-        bridgeSequence.poll(); 
+        // bridgeSequence.poll(); 
+        
         // rightClaw.poll(); 
         // leftClaw.poll(); 
 

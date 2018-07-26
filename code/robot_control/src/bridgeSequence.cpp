@@ -42,7 +42,7 @@ void BridgeSequence::poll() {
 
             // TEMPORARY
             angle = bridge.firstBridgeUpperAngle;
-            state = 0; 
+            state = 5; 
             break;
         case 2: 
             if (bridge.detectEdge() || onEdge) { 

@@ -5,14 +5,14 @@ class Bridge {
     private: 
         Servo bridgeServo1; 
         Servo bridgeServo2; 
-        uint8_t QRDLeft; 
-        uint8_t QRDRight; 
-        uint8_t QRD_THRESHOLD; 
+        uint16_t QRDLeft; 
+        uint16_t QRDRight; 
+        uint16_t qrdThreshold; 
 
     public: 
         Bridge(); 
         Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
-                int QRD_THRESHOLD, int firstBridgeLowerAngle, int firstBridgeUpperAngle); 
+                int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle); 
         bool detectEdge(); 
         void lowerBridge1(int angle); 
         void raiseBridge1(); 

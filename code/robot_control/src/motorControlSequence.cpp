@@ -99,57 +99,57 @@ void MotorControl::poll() {
             }
             break; 
         case 6: 
-            // Rotate 180 degree to go back home
+            // Rotate until tape is found
             rotateLeft(); 
-            if (millis() > delay) { 
+            Serial.println("rotating"); 
+            if (pidControl.leftOnTape()) { 
                 delay = millis() + 500; 
                 state++; 
             }
             break; 
-        case 7: 
-            // Rotation complete, try to find tape again
+        // case 7: 
+        //     // Rotation complete, try to find tape again
 
-            // Stop sweep once 180 time is up or left qrd is on tape
-            if (pidControl.getLeftQRDReading()) { 
-                state+=2; 
-            }
-            else if (millis() > delay) { 
-                delay = millis() + 500; 
-                state++; 
-            }
-            // Sweep left
-            else { 
-                rotateLeft(); 
-            }
-            break; 
-        case 8: 
-            // Stop sweep once 180 time is up or right qrd is on tape 
-            if (pidControl.getRightQRDReading()) { 
-                state++; 
-            }
-            else if (millis() > delay) { 
-                delay = millis() + 1000; 
-                state++; 
-            }
-            // Sweep right 
-            else {      
-                rotateRight();
-            }
-            break; 
-        case 9: 
+        //     // Stop sweep once 180 time is up or left qrd is on tape
+        //     if (pidControl.getLeftQRDReading()) { 
+        //         state+=2; 
+        //     }
+        //     else if (millis() > delay) { 
+        //         delay = millis() + 500; 
+        //         state++; 
+        //     }
+        //     // Sweep left
+        //     else { 
+        //         rotateLeft(); 
+        //     }
+        //     break; 
+        // case 8: 
+        //     // Stop sweep once 180 time is up or right qrd is on tape 
+        //     if (pidControl.getRightQRDReading()) { 
+        //         state++; 
+        //     }
+        //     else if (millis() > delay) { 
+        //         delay = millis() + 1000; 
+        //         state++; 
+        //     }
+        //     // Sweep right 
+        //     else {      
+        //         rotateRight();
+        //     }
+        //     break; 
+        case 7: 
+            Serial.println("PIDing"); 
             pid(); 
             break; 
         case 10: 
             // Edge detected, reverse
-            // continuousReverse();
-
-            // UNCOMMENT this if continuous reverse isn't working
             leftMotor.write(-defaultSpeed); 
             rightMotor.write(-defaultSpeed); 
 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + bridge1WaitTime; 
+                Serial.print("Reverse 1 done: "); Serial.println(millis()); 
             } 
             break; 
         case 11: 
@@ -159,6 +159,7 @@ void MotorControl::poll() {
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + reverseTime1; 
+                Serial.print("Wait done"); Serial.println(millis()); 
             }
             break;
         case 12: 
@@ -168,6 +169,7 @@ void MotorControl::poll() {
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + forwardDriveTime1; 
+                Serial.print("Reverse done: "); Serial.println(millis()); 
             }
             break; 
         case 13: 
@@ -176,6 +178,7 @@ void MotorControl::poll() {
             rightMotor.write(defaultSpeed);
             if (millis() > delay) { 
                 // CHANGE THE DEFAULT STATE, 20 for testing for now
+                Serial.print("Forward done: "); Serial.println(millis()); 
                 state = 20; 
             } 
             break;
@@ -214,6 +217,7 @@ void MotorControl::stateOverride(int specialState, int delay) {
     */
    state = specialState;
    this->delay = millis() + delay; 
+   Serial.print("millis: "); Serial.println(millis());     
 }
 
 /** 

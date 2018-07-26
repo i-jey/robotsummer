@@ -15,6 +15,7 @@ class TapeFollow {
         int rightMotorSpeed = 0; 
 
         int pidGain; 
+        int qrdThreshold; 
 
     public: 
         TapeFollow(); 
@@ -24,6 +25,8 @@ class TapeFollow {
         int getRightMotorSpeed(); 
         int getLeftQRDReading(); 
         int getRightQRDReading(); 
+        bool leftOnTape(); 
+        bool rightOnTape(); 
         void updateSpeed(int newSpeed); 
 }; 
 
