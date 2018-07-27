@@ -3,7 +3,7 @@
 
 // Global variables 
 extern int temp;
-extern bool firstEwok;  
+extern int ewokCounter;  
 constexpr float wheelDiameter = 6.14;
 
 // libraries 
@@ -19,9 +19,9 @@ constexpr float wheelDiameter = 6.14;
 #include "claw.h" 
 #include "clawSequence.h"
 #include "bridge.h"
-#include "bridgeSequence.h"
 #include "encoder.h"
 #include "tapeFollow.h"
 #include "infraredReader.h"
+#include "basket.h"
 
 #endif 

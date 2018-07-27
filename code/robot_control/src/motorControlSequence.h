@@ -1,39 +1,39 @@
 #ifndef MOTORCONTROLSEQUENCE_H
 #define MOTORCONTROLSEQUENCE_H
-#include "motor.h"
-#include "tapeFollow.h" 
 
 class MotorControl { 
     private: 
         unsigned long delay; 
+        unsigned long specialStateDelay; 
         int state; 
 
+        // Modules to keep track of / control
         Motor leftMotor; 
         Motor rightMotor; 
+        TapeFollow pidControl; 
+        Bridge bridge;              // Crossing gaps
+        IRReader ir;                // Crossing IR gate
+        Basket basket;              // Rotation and basket hooking 
+        ClawSequence leftClaw;      // Override claw polling (i.e raise at gate)
+        ClawSequence rightClaw; 
 
+        // Default variables 
         int defaultSpeed; 
         int speedLeft;
         int speedRight;
 
-        int reverseTime1; 
-        int reverseTime2; 
-
-        int bridge1WaitTime; 
-        int bridge2WaitTime; 
-
-        int forwardDriveTime1; 
-        int forwardDriveTime2; 
-
-        int leftRotate90Delay; 
-        int rightRotate90Delay; 
+        // Special state trackers 
+        int edgeCounters; 
+        bool irGoNoGo; 
 
         // PID
-        TapeFollow pidControl; 
         int qrdThreshold; 
         int gain; 
         int pVal; 
         int iVal; 
         int dVal; 
+
+        int angle; 
 
         // Local convenience functions
         void updateSpeedLeft(int newSpeed);
@@ -46,11 +46,11 @@ class MotorControl {
 
     public: 
         MotorControl();
-        MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
-                TapeFollow &pidControl, int qrdThreshold, int gain, int p, int i, int d, int reverse1Time, int reverse2Time, 
-                int bridge1WaitTime, int bridge2WaitTime, int forwardDriveTime1, int forwardDriveTime2, int rotateLeftDelay, int rotateRightDelay);
+        MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
+            Basket &basket, TapeFollow &pidControl, ClawSequence leftClaw, ClawSequence rightClaw, 
+            int qrdThreshold, int gain, int p, int i, int d);
 
-        void reset(); 
+        void specialStateChecker(); 
         void poll(); 
         void stateOverride(int specialState, int delay); 
 

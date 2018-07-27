@@ -3,10 +3,13 @@
 
 class IRReader { 
     private: 
-        int IRPin; 
+        int pin1k;  
+        int pin10k; 
     public: 
-        IRReader(int IRPin); 
-        // TODO 
+        IRReader(); 
+        IRReader(int pin1k, int pin10k); 
+        bool read1k(); 
+        bool read10k(); 
 }; 
 
 #endif

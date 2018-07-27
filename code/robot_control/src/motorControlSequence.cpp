@@ -1,75 +1,73 @@
 #include "includes.h" 
 
 MotorControl::MotorControl(){};
-MotorControl::MotorControl(int startingState, int startingSpeed, Motor &leftMotor, Motor &rightMotor, 
-    TapeFollow &pidControl, int qrdThreshold, int gain, int p, int i, int d, int reverseTime1, int reverseTime2, 
-    int bridge1WaitTime, int bridge2WaitTime, int forwardDriveTime1, int forwardDriveTime2, 
-    int leftRotate90Delay, int rightRotate90Delay) { 
-
-    // FYI, the ampersand &, is a pointer (i.e as opposed to making a copy of the object
-    // this means we will be referencing the actual object that was passed in)
-    this->state = startingState;
-    this->defaultSpeed = startingSpeed;  
-    this->speedLeft = startingSpeed;
-    this->speedRight = startingSpeed;
+MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
+    Basket &basket, TapeFollow &pidControl, ClawSequence leftClaw, ClawSequence rightClaw, int qrdThreshold, int gain, int p, int i, int d) { 
 
     this->leftMotor = leftMotor; 
     this->rightMotor = rightMotor; 
-
-    this->reverseTime1 = reverseTime1; 
-    this->reverseTime2 = reverseTime2;
-
-    this->bridge1WaitTime = bridge1WaitTime; 
-    this->bridge2WaitTime = bridge2WaitTime;
-
-    this->forwardDriveTime1 = forwardDriveTime1; 
-    this->forwardDriveTime2 = forwardDriveTime2; 
-
-    this->leftRotate90Delay = leftRotate90Delay; 
-    this->rightRotate90Delay = rightRotate90Delay; 
-
+    this->bridge = bridge; 
+    this->ir = ir; 
+    this->basket = basket; 
+    this->pidControl = pidControl; 
+    this->leftClaw = leftClaw; 
+    this->rightClaw = rightClaw; 
     this->qrdThreshold = qrdThreshold;  
     this->gain = gain; 
     this->pVal = p; 
     this->iVal = i; 
     this->dVal = d; 
-
-    this->pidControl = pidControl; 
+    
 }
 
-void MotorControl::reset() { 
-    state = 0; 
+void MotorControl::specialStateChecker() {
+    // Special state delay is used to prevent repeating a state (i.e restarting first bridge sequence multiple times as
+    // it pulls away from the edge)
 
-    // For now, I can't foresee where we may want to add 
-    // delays between switching between motor logic, but it's here
-    // in case the need arises    
-    delay = millis(); 
+    if (millis() < specialStateDelay) { 
+        return; 
+    }
+    // Bridge special sequences 
+    if (bridge.detectEdge()) { 
+        specialStateDelay = millis() + 5000; 
+        if (edgeCounters == 0) { 
+            // Switch to first bridge sequence
+            state = 10; 
+            edgeCounters++; 
+            angle = bridge.firstBridgeUpperAngle;
+        }
+        else if (edgeCounters == 1) { 
+            // Switch to second bridge sequence, lower both arms again
+            leftClaw.stateOverride(0); 
+            rightClaw.stateOverride(0); 
+            angle = bridge.secondBridgeUpperAngle;
+        }
+    }
+
+    // IR special sequences  
+    if (ir.read1k()) { 
+        // Switch to wait state
+        state = 100; 
+        leftClaw.stateOverride(10); // Lift left arm
+    }
+    else if (ir.read10k()) { 
+        // Switch to haul ass + left arm up state
+        state = 2; 
+        rightClaw.stateOverride(10); // Raise right arm
+    }
 }
-
-
 
 void MotorControl::poll() { 
-    /*  Define motor states
-    *   0 : Continuous forward drive at a desired speed 
-    *   1 : Tape following w/ PID 
-    *   10 : Bridge deployment 1 
-    *   20 : Infrared sensor wait
-    *   30 : Bridge deployment 2 
-    *   40 : Edge detection motor control 
-    *   50 : Basket sequence
-    */  
-    Serial.print("State: "); Serial.println(state); 
-    // Serial.print("L: "); Serial.println(speedLeft); 
-    // Serial.print("R: "); Serial.println(speedRight); 
-    // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
-    // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
+
+    /**
+     * CASE: 
+     *  5 - 7: first ewok + turn around
+     *  10 - 14: first bridge sequence 
+     * 
+     *  
+    **/
+
     switch(state) { 
-        /** 
-         * Cases:
-         * 0 - 4, basic functions for testing
-         * 5-9, pid and get first ewok, turn back
-         * 10-13, first bridge deployment and crossing
-         **/
         case 0:  
             continuousForward(); 
             break; 
@@ -77,7 +75,6 @@ void MotorControl::poll() {
             continuousReverse();
             break; 
         case 2:
-            // Tape following
             pid(); 
             break; 
         case 3: 
@@ -96,7 +93,7 @@ void MotorControl::poll() {
             break;
         case 5: 
             pid(); 
-            if (firstEwok) {  
+            if (ewokCounter == 1) {  
                 state++; 
                 delay = millis() + 2500;
             }
@@ -104,6 +101,8 @@ void MotorControl::poll() {
         case 6:
             leftMotor.write(0);
             rightMotor.write(0);
+            leftClaw.stateOverride(10); 
+            rightClaw.stateOverride(10); 
             if (millis() > delay) {
                 state++;
                 delay = millis() + 800; 
@@ -112,11 +111,11 @@ void MotorControl::poll() {
         case 7: 
             // Rotate until tape is found        
             rotateLeft(); 
-            Serial.print(pidControl.getLeftQRDReading()); Serial.print(" "); Serial.println(qrdThreshold); 
-            if (pidControl.getLeftQRDReading() > qrdThreshold && millis() > delay) { 
+
+            if (millis() > delay) { 
                 delay = millis();
-                leftMotor.write(defaultSpeed+20); 
-                rightMotor.write(defaultSpeed-20);
+                leftMotor.write(defaultSpeed+40); 
+                rightMotor.write(defaultSpeed-40);
                 state = 99; 
             }
             
@@ -125,42 +124,60 @@ void MotorControl::poll() {
             // Edge detected, reverse
             leftMotor.write(-defaultSpeed); 
             rightMotor.write(-defaultSpeed); 
-
+            leftClaw.stateOverride(10); 
+            rightClaw.stateOverride(10); 
             if (millis() > delay) { 
                 state++; 
+                int angle = bridge.firstBridgeUpperAngle; 
                 delay = millis() + 2500; 
             } 
             break; 
         case 11: 
-            // wait for bridge to lower
+            // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
+
+            // Lower bridge 
+            bridge.lowerBridge1(angle); 
+            angle--; 
+            delay = millis() + 50; 
+            if (angle < bridge.firstBridgeLowerAngle) { 
+                state++;
+                delay = millis() + 1000; 
+            }
+            else { 
+                delay = millis() + 25; 
+            }
+            break; 
+        case 12: 
+            // Reverse to drop bridge 
+            leftMotor.write(-130); 
+            rightMotor.write(-130); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + 1000; 
             }
-            break;
-        case 12: 
-            // Reverse to drop bridge 
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(-defaultSpeed); 
-            if (millis() > delay) { 
-                state++; 
-                delay = millis() + 4000; 
-            }
             break; 
         case 13: 
-            // CHANGE THIS later
-            leftMotor.write(defaultSpeed); 
-            rightMotor.write(defaultSpeed);
-            if (millis() > delay) {  
-                state = 20; 
-            } 
-            break;
-        case 20: 
-            // Stop motors until state changes (ie. from IR class?)
+            // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
+            bridge.raiseBridge1(); 
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 3000; 
+            }
+            break; 
+        case 14: 
+            // Drive over bridge
+            leftMotor.write(defaultSpeed); 
+            rightMotor.write(defaultSpeed);
+            leftClaw.stateOverride(0); 
+            rightClaw.stateOverride(0); 
+            if (millis() > delay) { 
+                // start PID again 
+                state = 20; 
+            } 
             break; 
         case 30: 
             // TODO
@@ -178,6 +195,11 @@ void MotorControl::poll() {
         case 99: 
             // Hold whatever motor speeds are currently going
             break; 
+        case 100: 
+            // Stop motors until state changes (ie. from IR class?)
+            leftMotor.write(0); 
+            rightMotor.write(0); 
+            break; 
         default: 
             break; 
     }
@@ -194,9 +216,7 @@ void MotorControl::stateOverride(int specialState, int delay) {
     *   50 : Basket sequence
     */
    state = specialState;
-   this->delay = millis() + delay; 
-   Serial.print("millis: "); Serial.print(millis());
-   Serial.print(" state: "); Serial.println(state); 
+   this->delay = millis() + delay;  
 }
 
 /** 
@@ -257,17 +277,7 @@ void MotorControl::updateD(int newD) {
     dVal = newD; 
 }
 
-void MotorControl::updateReverseTime1(int newTime)  {
-    reverseTime1 = newTime; 
-}
 
-void MotorControl::updateDropBridge1Time(int newTime) { 
-    bridge1WaitTime = newTime; 
-}
-
-void MotorControl::updateForwardDrive1(int newTime) { 
-    forwardDriveTime1 = newTime; 
-}
 //// High level motor control functions //// 
 
 void MotorControl::continuousForward() { 
@@ -298,6 +308,6 @@ void MotorControl::rotateLeft() {
 }
 
 void MotorControl::rotateRight() { 
-    leftMotor.write(defaultSpeed); 
-    rightMotor.write(-defaultSpeed);
+    leftMotor.write(200); 
+    rightMotor.write(-200);
 }

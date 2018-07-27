@@ -18,8 +18,6 @@ enum MenuItems {
     reverseTime1, 
     drop1Time, 
     forwardTime1, 
-    rotate1, 
-    rotate2,
 };
 
 // Menu pins 
@@ -63,6 +61,13 @@ constexpr int left_clamp_pin = PB5;
 constexpr int left_arm_pin = PB6; 
 constexpr int left_push_button = PB3; 
 
+// IR Pins 
+constexpr int irPin1 = PB12; 
+constexpr int irPin2 = PB13; 
+
+// Basket pin 
+constexpr int basketPin = PA8; 
+
 // Motor 
 // How long to run motor in reverse when edge detected 
 int edgeReverseTime1 = 500; 
@@ -86,7 +91,6 @@ int bridge1LowerAngle = 47;
 int bridge1UpperAngle = 110; 
 int bridge1Delay = dropBridge1Time; 
 Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
-BridgeSequence bridgeSequence = BridgeSequence(bridge, bridge1Delay, 500, 500); 
 
 // PID constants
 int p = 0;
@@ -94,18 +98,17 @@ int i = 0;
 int d = 0;
 int gain = 0;
 int qrdThreshold = 0; 
-
-// Start state and speed
-int motorStartState = 20; 
 int defaultSpeed = 120; 
+
+IRReader ir = IRReader(irPin1, irPin2); 
+Basket basket = Basket(basketPin);
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
 // Initialize motor
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
 Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
-MotorControl motorControl = MotorControl(motorStartState, defaultSpeed, leftMotor, rightMotor, 
-    pidControl, qrdThreshold, gain, p, i, d, edgeReverseTime1, reverseTime2, dropBridge1Time, 
-    bridge2WaitTime, forwardDriveTime1, forwardDriveTime2, leftRotateDelay, rightRotateDelay); 
+MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge, ir, basket, 
+    pidControl, leftClaw, rightClaw, qrdThreshold, gain, p, i, d); 
 MotorInit motorInit = MotorInit(); 
 
 // Claw 
@@ -202,9 +205,6 @@ void initializeFromEEPROM() {
     edgeReverseTime1 = readFromEEPROM(MenuItems::reverseTime1); 
     dropBridge1Time = readFromEEPROM(MenuItems::drop1Time); 
     forwardDriveTime1 = readFromEEPROM(MenuItems::forwardTime1); 
-
-    rotate90 = readFromEEPROM(MenuItems::rotate1); 
-    rotate180 = readFromEEPROM(MenuItems::rotate2); 
 }
 
 int optionState = 0; 
@@ -294,7 +294,7 @@ void bridgeMenu() {
     delay(100); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
-        if (optionState >= 4) { 
+        if (optionState >= 3) { 
             optionState = 0; 
         }
         else { 
@@ -312,7 +312,6 @@ void bridgeMenu() {
     oled.printNumI(edgeReverseTime1, RIGHT, 20);
     oled.printNumI(dropBridge1Time, RIGHT, 30); 
     oled.printNumI(forwardDriveTime1, RIGHT, 40); 
-    oled.printNumI(rotate180, RIGHT, 50); 
 
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -338,9 +337,6 @@ void bridgeMenu() {
                 writeToEEPROM(MenuItems::forwardTime1, forwardDriveTime1); 
                 motorControl.updateForwardDrive1(forwardDriveTime1);
                 break; 
-            case 4: 
-                rotate180 = potVal; 
-                writeToEEPROM(MenuItems::rotate2, rotate180); 
             default:
                 break; 
         }
@@ -377,20 +373,24 @@ void loop() {
         if (initMotors) {
             initMotors = false; 
             motorInit.init();
+
             oled.clrScr(); 
-            oled.print("PL2 W07K", 40, 40); 
+            oled.print("m4ny nut th30ry", 40, 40);
+            oled.print("8====3 - - - 1", 40, 50);  
+            oled.print("8====3 = = = 1", 50, 50); 
+            oled.invert(true); 
             oled.update(); 
+            
              // grace period before it starts to go 
             delay(1000); 
-
+            oled.invert(false); 
             motorControl.stateOverride(0, 0); 
-            firstEwok = false; 
+            ewokCounter = 0; 
         }
         motorControl.poll(); 
-        bridgeSequence.poll(); 
-        
+        // bridgeSequence.poll(); 
         rightClaw.poll(); 
-        // leftClaw.poll(); 
+        leftClaw.poll(); 
 
         if (temp==1) {
             // Change to bridge sequence motor state

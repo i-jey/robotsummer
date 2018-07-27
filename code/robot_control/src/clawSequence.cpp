@@ -35,7 +35,7 @@ void ClawSequence::poll() {
             if (arm.ewokDetected()) { 
                 arm.close(); 
                 state++; 
-                firstEwok = true; 
+                ewokCounter++; 
                 delay = millis() + closeTime; 
             }
             else { 
