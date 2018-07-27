@@ -12,7 +12,7 @@ Motor::Motor(int motorPin1, int motorPin2) {
 
 void Motor::forward(int speed) {
     // Accepts positive integers between 0-255. 
-    // Runs the motors forward (check polarity of wiring). 
+    // Runs the motors forward (check polarity of wiring).
     analogWrite(motorPin1, speed); 
     analogWrite(motorPin2, 0); 
 }

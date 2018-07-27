@@ -5,9 +5,9 @@ class Bridge {
     private: 
         Servo bridgeServo1; 
         Servo bridgeServo2; 
-        uint16_t QRDLeft; 
-        uint16_t QRDRight; 
-        uint16_t qrdThreshold; 
+        int QRDLeft; 
+        int QRDRight; 
+        int qrdThreshold; 
 
     public: 
         Bridge(); 

@@ -19,36 +19,27 @@ void BridgeSequence::poll() {
 
     switch(state) { 
         case 0: 
-            if (bridge.detectEdge() || onEdge) { 
-                onEdge = true; 
-                angle--; 
-                bridge.lowerBridge1(angle); 
-                delay = millis() + 50; 
+            if (bridge.detectEdge()) { 
                 temp = 1; 
-            }
-            delay = millis() + 50; 
-            
-            if (angle == bridge.firstBridgeLowerAngle) { 
-                onEdge = false;
+                delay = millis() + 1000; 
                 state++; 
-                delay = millis() + bridge1Delay;
             }
             break; 
         case 1: 
-            bridge.raiseBridge1(); 
-            
-            // angle = bridge.secondBridgeUpperAngle;
-            // state++; 
-
-            // TEMPORARY
-            angle = bridge.firstBridgeUpperAngle;
-            state = 5; 
+            if (angle > bridge.firstBridgeLowerAngle) { 
+                angle--; 
+                bridge.lowerBridge1(angle); 
+                delay = millis() + 25; 
+            }
+            else { 
+                state++; 
+                delay = millis() + 2500; 
+            }
             break;
         case 2: 
-            if (bridge.detectEdge() || onEdge) { 
-                // second edge detected 
-                // add global flag to start custom movement and edge navigation
-                delay = millis() + rotateDelay;
+            if (millis() > delay) { 
+                bridge.raiseBridge1(); 
+                state = 5; 
             }
             break; 
         case 3: 

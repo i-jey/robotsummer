@@ -58,9 +58,9 @@ void MotorControl::poll() {
     *   40 : Edge detection motor control 
     *   50 : Basket sequence
     */  
+    Serial.print("State: "); Serial.println(state); 
     // Serial.print("L: "); Serial.println(speedLeft); 
     // Serial.print("R: "); Serial.println(speedRight); 
-    Serial.print("State: "); Serial.println(state); 
     // Serial.print("QRD L: "); Serial.println(pidControl.getLeftQRDReading());
     // Serial.print("QRD R: "); Serial.println(pidControl.getRightQRDReading());
     switch(state) { 
@@ -104,58 +104,23 @@ void MotorControl::poll() {
         case 6:
             leftMotor.write(0);
             rightMotor.write(0);
-            Serial.println("Stopping.");
             if (millis() > delay) {
                 state++;
+                delay = millis() + 800; 
             }
+            break; 
         case 7: 
             // Rotate until tape is found        
             rotateLeft(); 
-            Serial.println("rotating"); 
+            Serial.print(pidControl.getLeftQRDReading()); Serial.print(" "); Serial.println(qrdThreshold); 
             if (pidControl.getLeftQRDReading() > qrdThreshold && millis() > delay) { 
                 delay = millis();
-                // leftMotor.write(0); 
-                // rightMotor.write(0);  
-                leftMotor.write(defaultSpeed+5); 
-                rightMotor.write(defaultSpeed-5);
-                state=99; 
+                leftMotor.write(defaultSpeed+20); 
+                rightMotor.write(defaultSpeed-20);
+                state = 99; 
             }
             
             break; 
-        // case 7: 
-        //     // Rotation complete, try to find tape again
-
-        //     // Stop sweep once 180 time is up or left qrd is on tape
-        //     if (pidControl.getLeftQRDReading()) { 
-        //         state+=2; 
-        //     }
-        //     else if (millis() > delay) { 
-        //         delay = millis() + 500; 
-        //         state++; 
-        //     }
-        //     // Sweep left
-        //     else { 
-        //         rotateLeft(); 
-        //     }
-        //     break; 
-        // case 8: 
-        //     // Stop sweep once 180 time is up or right qrd is on tape 
-        //     if (pidControl.getRightQRDReading()) { 
-        //         state++; 
-        //     }
-        //     else if (millis() > delay) { 
-        //         delay = millis() + 1000; 
-        //         state++; 
-        //     }
-        //     // Sweep right 
-        //     else {      
-        //         rotateRight();
-        //     }
-        //     break; 
-        // case 7: 
-        //     Serial.println("PIDing"); 
-        //     pid(); 
-        //     break; 
         case 10: 
             // Edge detected, reverse
             leftMotor.write(-defaultSpeed); 
@@ -163,8 +128,7 @@ void MotorControl::poll() {
 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + bridge1WaitTime; 
-                Serial.print("Reverse 1 done: "); Serial.println(millis()); 
+                delay = millis() + 2500; 
             } 
             break; 
         case 11: 
@@ -173,8 +137,7 @@ void MotorControl::poll() {
             rightMotor.write(0); 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + reverseTime1; 
-                Serial.print("Wait done"); Serial.println(millis()); 
+                delay = millis() + 1000; 
             }
             break;
         case 12: 
@@ -183,17 +146,14 @@ void MotorControl::poll() {
             rightMotor.write(-defaultSpeed); 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + forwardDriveTime1; 
-                Serial.print("Reverse done: "); Serial.println(millis()); 
+                delay = millis() + 4000; 
             }
             break; 
         case 13: 
             // CHANGE THIS later
             leftMotor.write(defaultSpeed); 
             rightMotor.write(defaultSpeed);
-            if (millis() > delay) { 
-                // CHANGE THE DEFAULT STATE, 20 for testing for now
-                Serial.print("Forward done: "); Serial.println(millis()); 
+            if (millis() > delay) {  
                 state = 20; 
             } 
             break;
@@ -325,6 +285,8 @@ void MotorControl::pid() {
 
     updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
     updateSpeedRight(pidControl.getRightMotorSpeed()); 
+    
+    Serial.print(speedLeft); Serial.print(" "); Serial.println(speedRight); 
     
     leftMotor.write(speedLeft); 
     rightMotor.write(speedRight); 

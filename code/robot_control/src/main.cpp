@@ -116,9 +116,9 @@ int leftClawLowerAngle = 0;
 int leftClawRaiseAngle = 180; 
 
 int rightClawCloseAngle = 0; 
-int rightClawOpenAngle = 110; 
-int rightClawOpenAngleInside = 87; 
-int rightClawLowerAngle = 142; 
+int rightClawOpenAngle = 160; 
+int rightClawOpenAngleInside = 127; 
+int rightClawLowerAngle = 133; 
 int rightClawRaiseAngle = 10; 
 int rightVertical = 40; 
 
@@ -377,22 +377,24 @@ void loop() {
         if (initMotors) {
             initMotors = false; 
             motorInit.init();
-            
+            oled.clrScr(); 
+            oled.print("PL2 W07K", 40, 40); 
+            oled.update(); 
              // grace period before it starts to go 
             delay(1000); 
 
-            motorControl.stateOverride(5, 0); 
+            motorControl.stateOverride(0, 0); 
             firstEwok = false; 
         }
         motorControl.poll(); 
-        // bridgeSequence.poll(); 
+        bridgeSequence.poll(); 
         
         rightClaw.poll(); 
         // leftClaw.poll(); 
 
         if (temp==1) {
-            // Change to bridge sequence motor state, reverse time = 100
-            motorControl.stateOverride(10, edgeReverseTime1);
+            // Change to bridge sequence motor state
+            motorControl.stateOverride(10, 1000);
             temp = 0;
         }
     }
