@@ -4,7 +4,15 @@
 // Global variables 
 extern int temp;
 extern int ewokCounter;  
-constexpr float wheelDiameter = 6.14;
+extern int edgeCounters; 
+extern int globalMotorStateTracker; 
+
+// Encoder global variables
+constexpr int countsPerRotation = 48; 
+constexpr float wheelDiameter = 6.14; // cm
+constexpr float wheelToWheelDistance = 10; // cm
+extern volatile int leftWheelCounter; 
+extern volatile int rightWheelCounter; 
 
 // libraries 
 #include <Arduino.h>
@@ -15,13 +23,12 @@ constexpr float wheelDiameter = 6.14;
 // header files 
 #include "motor.h"
 #include "motorinit.h"
-#include "motorControlSequence.h"
 #include "claw.h" 
 #include "clawSequence.h"
 #include "bridge.h"
-#include "encoder.h"
 #include "tapeFollow.h"
 #include "infraredReader.h"
 #include "basket.h"
+#include "motorControlSequence.h"
 
 #endif 

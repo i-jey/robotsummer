@@ -3,6 +3,10 @@
 
 // Temp global variable
 int temp = 0; 
+int ewokCounter = 0; 
+int edgeCounters = 0; 
+volatile int leftWheelCounter = 0; 
+volatile int rightWheelCounter = 0; 
 
 // EEPROM / menu reference 
 enum MenuItems { 
@@ -14,17 +18,16 @@ enum MenuItems {
     edgeThresh, 
     firstBridgeLowerAngle, 
     firstBridgeUpperAngle, 
-    firstBridgeDelay, 
-    reverseTime1, 
-    drop1Time, 
-    forwardTime1, 
+    edgeReverseDistance, 
+    dropBridgeDistance, 
+    driveOverDistance, 
 };
 
 // Menu pins 
 constexpr int startBtn = PC15;
-constexpr int menuMinus = PA11; 
-constexpr int menuToggle = PA12; 
-constexpr int menuPlus = PA15; 
+constexpr int menuMinus = PA12; 
+constexpr int menuToggle = PA15; 
+constexpr int menuPlus = PA11; 
 constexpr int menuPot = PB1; 
 
 // Oled pins 
@@ -38,6 +41,10 @@ constexpr int right_motor_pin1 = PA0;
 constexpr int right_motor_pin2 = PA1; 
 constexpr int left_motor_pin1 = PA2; 
 constexpr int left_motor_pin2 = PA3; 
+
+// Encoder 
+constexpr int encoderLeft = PB14; 
+constexpr int encoderRight = PB15; 
 
 // PID QRDs 
 constexpr int right_pid_QRD = PA4; 
@@ -57,7 +64,7 @@ constexpr int right_arm_pin = PB7;
 constexpr int right_push_button = PB4; 
 
 // Left claw pins 
-constexpr int left_clamp_pin = PB5;
+constexpr int left_clamp_pin = PB0;
 constexpr int left_arm_pin = PB6; 
 constexpr int left_push_button = PB3; 
 
@@ -68,28 +75,10 @@ constexpr int irPin2 = PB13;
 // Basket pin 
 constexpr int basketPin = PA8; 
 
-// Motor 
-// How long to run motor in reverse when edge detected 
-int edgeReverseTime1 = 500; 
-int reverseTime2 = 1500; 
-// Motor wait times while lowering bridge 
-int dropBridge1Time = 2000; 
-int bridge2WaitTime = 2000; 
-// How long to drive forward after dropping bridge 
-int forwardDriveTime1 = 2000; 
-int forwardDriveTime2 = 2000; 
-// 90 degree turn delays 
-int leftRotateDelay = 500; 
-int rightRotateDelay = 500; 
-// Rotate times 
-int rotate90 = 100; 
-int rotate180 = 200; 
-
 // Bridge 
 int edgeThreshold = 500; 
 int bridge1LowerAngle = 47; 
 int bridge1UpperAngle = 110; 
-int bridge1Delay = dropBridge1Time; 
 Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
 
 // PID constants
@@ -104,22 +93,15 @@ IRReader ir = IRReader(irPin1, irPin2);
 Basket basket = Basket(basketPin);
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
-// Initialize motor
-Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
-Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
-MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge, ir, basket, 
-    pidControl, leftClaw, rightClaw, qrdThreshold, gain, p, i, d); 
-MotorInit motorInit = MotorInit(); 
-
 // Claw 
 int leftClawCloseAngle = 140; 
 int leftClawOpenAngle = 50; 
 int leftClawOpenAngleInside; 
-int leftClawLowerAngle = 0; 
+int leftClawLowerAngle = 50; 
 int leftClawRaiseAngle = 180; 
 
 int rightClawCloseAngle = 0; 
-int rightClawOpenAngle = 160; 
+int rightClawOpenAngle = 110; 
 int rightClawOpenAngleInside = 127; 
 int rightClawLowerAngle = 133; 
 int rightClawRaiseAngle = 10; 
@@ -138,17 +120,35 @@ ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, 
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button, leftClawCloseAngle, leftClawOpenAngle, leftClawOpenAngleInside, leftClawLowerAngle, leftClawRaiseAngle); 
 ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 
+// Initialize motor
+Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
+Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2); 
+MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge, ir, basket, 
+    pidControl, leftClaw, rightClaw, qrdThreshold, gain, p, i, d); 
+MotorInit motorInit = MotorInit(); 
+int globalMotorStateTracker = 0; 
 
 // Menu bools 
 bool start; 
 bool toggle = false; 
 
+void leftEncoderIncrement() { 
+    leftWheelCounter++; 
+}
+void rightEncoderIncrement() { 
+    rightWheelCounter++;
+}
+
 void setup() {  
     Serial.begin(9600); 
     
+    // Encoder interrupts 
+    attachInterrupt(encoderLeft, leftEncoderIncrement, RISING); 
+    attachInterrupt(encoderRight, rightEncoderIncrement, RISING); 
+
     // Initialize motor pins 
     motorInit.init(); 
-    
+
     // Initialize qrds 
     pinMode(left_edge_QRD, INPUT); 
     pinMode(right_edge_QRD, INPUT); 
@@ -188,23 +188,17 @@ int16_t readFromEEPROM(int loc) {
 
 void initializeFromEEPROM() { 
     // PID values
-    p = readFromEEPROM(MenuItems::menu_p);
-    i = 0; 
-    d = readFromEEPROM(MenuItems::menu_d);
-    gain = readFromEEPROM(MenuItems::menu_gain);
-    qrdThreshold = readFromEEPROM(MenuItems::menu_qrdThreshold); 
-    defaultSpeed = readFromEEPROM(MenuItems::menu_defaultSpeed);
+    p = readFromEEPROM(MenuItems::menu_p); motorControl.updateP(p); 
+    i = 0; motorControl.updateI(i);
+    d = readFromEEPROM(MenuItems::menu_d); motorControl.updateD(d); 
+    gain = readFromEEPROM(MenuItems::menu_gain); motorControl.updateGain(gain);
+    qrdThreshold = readFromEEPROM(MenuItems::menu_qrdThreshold); motorControl.updateThreshold(qrdThreshold);
+    defaultSpeed = readFromEEPROM(MenuItems::menu_defaultSpeed); motorControl.updateDefaultSpeed(defaultSpeed);
 
     // Bridge values 
-    edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); 
-    bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); 
-    bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); 
-    bridge1Delay = readFromEEPROM(MenuItems::firstBridgeDelay); 
-
-    // Bridge sequence values 
-    edgeReverseTime1 = readFromEEPROM(MenuItems::reverseTime1); 
-    dropBridge1Time = readFromEEPROM(MenuItems::drop1Time); 
-    forwardDriveTime1 = readFromEEPROM(MenuItems::forwardTime1); 
+    edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); bridge.updateThreshold(edgeThreshold);
+    bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
+    bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle);
 }
 
 int optionState = 0; 
@@ -212,10 +206,10 @@ void pidMenu() {
     int potVal = analogRead(menuPot) / 10; 
     
     oled.print("PID Menu", 0, 0); 
-    oled.print("p: ", 0, 10); 
-    oled.print("d: ", 0, 20); 
-    oled.print("gain: ", 0, 30); 
-    oled.print("thresh: ", 0, 40); 
+    oled.print("thresh: ", 0, 10); 
+    oled.print("p: ", 0, 20); 
+    oled.print("d: ", 0, 30); 
+    oled.print("gain: ", 0, 40); 
     oled.print("Speed: ", 0, 50); 
 
     delay(100); // Debouncing delay 
@@ -231,12 +225,12 @@ void pidMenu() {
     // edit-view toggle 
     if (digitalRead(menuMinus)) {toggle = !toggle;}
 
-    oled.printNumI(p, RIGHT, 10);
-    oled.printNumI(d, RIGHT, 20);
-    oled.printNumI(gain, RIGHT, 30); 
-    oled.printNumI(pidControl.getLeftQRDReading(), 45, 40);
-    oled.printNumI(pidControl.getRightQRDReading(), 75, 40); 
-    oled.printNumI(qrdThreshold, RIGHT, 40);
+    oled.printNumI(pidControl.getLeftQRDReading(), 45, 10);
+    oled.printNumI(pidControl.getRightQRDReading(), 75, 10); 
+    oled.printNumI(qrdThreshold, RIGHT, 10);
+    oled.printNumI(p, RIGHT, 20);
+    oled.printNumI(d, RIGHT, 30);
+    oled.printNumI(gain, RIGHT, 40); 
     oled.printNumI(defaultSpeed, RIGHT, 50); 
     oled.print("<--", 45, (optionState+1)*10); 
 
@@ -285,10 +279,9 @@ void bridgeMenu() {
 
     oled.print("Bridge Menu", 0, 0); 
     oled.print("Thresh: ", 0, 10); 
-    oled.print("Reverse times: ", 0, 20); 
-    oled.print("drop bridge time: ", 0, 30); 
-    oled.print("over bridge time: ", 0, 40); 
-    oled.print("rotate time: ", 0, 50);
+    oled.print("Reverse from edge counts: ", 0, 20); 
+    oled.print("drop bridge reverse counts: ", 0, 30); 
+    oled.print("drive over counts: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(100); // Debouncing delay 
@@ -309,10 +302,15 @@ void bridgeMenu() {
     oled.printNumI(edgeThreshold, RIGHT, 10); 
     oled.printNumI(bridge.getLeftEdgeReading(), 45, 10); 
     oled.printNumI(bridge.getRightEdgeReading(), 75, 10); 
-    oled.printNumI(edgeReverseTime1, RIGHT, 20);
-    oled.printNumI(dropBridge1Time, RIGHT, 30); 
-    oled.printNumI(forwardDriveTime1, RIGHT, 40); 
+    oled.printNumI(motorControl.edgeReverseDistance, RIGHT, 20); 
+    oled.printNumI(motorControl.dropBridgeDistance, RIGHT, 30); 
+    oled.printNumI(motorControl.driveOverDistance, RIGHT, 40); 
 
+    // Display count --> distance conversion 
+    oled.printNumI(motorControl.edgeReverseDistance * wheelDiameter * 3.14159265, 100, 20); 
+    oled.printNumI(motorControl.dropBridgeDistance * wheelDiameter * 3.14159265, 100, 30); 
+    oled.printNumI(motorControl.driveOverDistance * wheelDiameter * 3.14159265, 100, 40);
+    
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
     
@@ -323,19 +321,19 @@ void bridgeMenu() {
                 bridge.updateThreshold(edgeThreshold); 
                 break; 
             case 1: 
-                edgeReverseTime1 = potVal; 
-                writeToEEPROM(MenuItems::reverseTime1, edgeReverseTime1);
-                motorControl.updateReverseTime1(edgeReverseTime1); 
+                int erd = potVal; 
+                writeToEEPROM(MenuItems::edgeReverseDistance, erd); 
+                motorControl.edgeReverseDistance = erd; 
                 break; 
             case 2: 
-                dropBridge1Time = potVal; 
-                writeToEEPROM(MenuItems::drop1Time, dropBridge1Time); 
-                motorControl.updateDropBridge1Time(dropBridge1Time);
+                int dbd = potVal; 
+                writeToEEPROM(MenuItems::dropBridgeDistance, dbd); 
+                motorControl.dropBridgeDistance = dbd; 
                 break; 
             case 3: 
-                forwardDriveTime1 = potVal; 
-                writeToEEPROM(MenuItems::forwardTime1, forwardDriveTime1); 
-                motorControl.updateForwardDrive1(forwardDriveTime1);
+                int dod = potVal; 
+                writeToEEPROM(MenuItems::driveOverDistance, dod); 
+                motorControl.driveOverDistance = dod; 
                 break; 
             default:
                 break; 
@@ -375,20 +373,27 @@ void loop() {
             motorInit.init();
 
             oled.clrScr(); 
-            oled.print("m4ny nut th30ry", 40, 40);
-            oled.print("8====3 - - - 1", 40, 50);  
-            oled.print("8====3 = = = 1", 50, 50); 
-            oled.invert(true); 
+            oled.print("PL2 W0RK", 40, 50); 
             oled.update(); 
             
-             // grace period before it starts to go 
+            // grace period before it starts to go 
+            oled.print("3", 40, 0); oled.update(); 
             delay(1000); 
-            oled.invert(false); 
-            motorControl.stateOverride(0, 0); 
+            oled.print("2", 40, 0); oled.update(); 
+            delay(1000); 
+            oled.print("1", 40, 0); oled.update(); 
+            delay(1000); 
+
+            motorControl.stateOverride(20, 0); // state 20 = rotate left 90, right 90
             ewokCounter = 0; 
+            edgeCounters = 0; 
         }
+
+        oled.clrScr();
+        oled.print("Current state: ", 40, 40);
+        oled.printNumI(globalMotorStateTracker, 60, 0);  
+        oled.update(); 
         motorControl.poll(); 
-        // bridgeSequence.poll(); 
         rightClaw.poll(); 
         leftClaw.poll(); 
 

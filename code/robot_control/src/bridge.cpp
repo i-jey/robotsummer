@@ -1,5 +1,4 @@
 #include "includes.h"
-#include "bridge.h"
 
 Bridge::Bridge(){}; // Default constructor otherwise C++ whines
 Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle) { 
@@ -14,17 +13,24 @@ Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
     bridgeServo1.write(firstBridgeUpperAngle);
 }
 
-bool Bridge::detectEdge() { 
+bool Bridge::detectLeftEdge() { 
     int leftReading = getLeftEdgeReading(); 
-    int rightReading = getRightEdgeReading(); 
-    Serial.print("THRESH: "); Serial.println(qrdThreshold); 
-    // Serial.println(leftReading); 
-    // Serial.println(rightReading); 
-    if (leftReading > qrdThreshold && rightReading > qrdThreshold) { 
+
+    if (leftReading > qrdThreshold) { 
         return true; 
     }
     return false; 
 }
+
+bool Bridge:: detectRightEdge() { 
+    int rightReading = getRightEdgeReading(); 
+
+    if (rightReading > qrdThreshold) { 
+        return true; 
+    }
+    return false; 
+}
+
 void Bridge::lowerBridge1(int angle) { 
     bridgeServo1.write(angle); 
 }
@@ -34,7 +40,7 @@ void Bridge::raiseBridge1() {
 }
 
 bool Bridge::lowerBoth() { 
-    if (detectEdge()) { 
+    if (detectLeftEdge() && detectRightEdge()) { 
         bridgeServo1.write(47); 
         bridgeServo2.write(47); 
         return true; 

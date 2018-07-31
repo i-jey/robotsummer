@@ -13,7 +13,7 @@ Arm::Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle
 }
 
 bool Arm::ewokDetected() { 
-    if (digitalRead(pushButton)) { 
+    if (!digitalRead(pushButton)) { 
         return true; 
     }
     return false; 

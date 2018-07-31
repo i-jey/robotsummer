@@ -23,7 +23,6 @@ class MotorControl {
         int speedRight;
 
         // Special state trackers 
-        int edgeCounters; 
         bool irGoNoGo; 
 
         // PID
@@ -62,9 +61,11 @@ class MotorControl {
         void updateP(int newP); 
         void updateI(int newI); 
         void updateD(int newD); 
-        void updateReverseTime1(int newTime); 
-        void updateDropBridge1Time(int newTime); 
-        void updateForwardDrive1(int newTime); 
+
+        // First bridge sequence variables 
+        int edgeReverseDistance = 0; 
+        int dropBridgeDistance = 0; 
+        int driveOverDistance = 0; 
 };
 
 #endif

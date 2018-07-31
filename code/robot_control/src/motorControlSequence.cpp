@@ -28,7 +28,7 @@ void MotorControl::specialStateChecker() {
         return; 
     }
     // Bridge special sequences 
-    if (bridge.detectEdge()) { 
+    if (bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
         specialStateDelay = millis() + 5000; 
         if (edgeCounters == 0) { 
             // Switch to first bridge sequence
@@ -47,25 +47,20 @@ void MotorControl::specialStateChecker() {
     // IR special sequences  
     if (ir.read1k()) { 
         // Switch to wait state
-        state = 100; 
+        // state = 100; 
         leftClaw.stateOverride(10); // Lift left arm
     }
     else if (ir.read10k()) { 
         // Switch to haul ass + left arm up state
-        state = 2; 
+        // state = 2; 
         rightClaw.stateOverride(10); // Raise right arm
     }
 }
 
 void MotorControl::poll() { 
 
-    /**
-     * CASE: 
-     *  5 - 7: first ewok + turn around
-     *  10 - 14: first bridge sequence 
-     * 
-     *  
-    **/
+   specialStateChecker();
+   globalMotorStateTracker = state; 
 
     switch(state) { 
         case 0:  
@@ -120,19 +115,31 @@ void MotorControl::poll() {
             }
             
             break; 
+        // FIRST BRIDGE SEQUENCE
         case 10: 
-            // Edge detected, reverse
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(-defaultSpeed); 
+            // Edge detected on left, align with right
+            leftMotor.write(0); 
+            rightMotor.write(defaultSpeed); 
             leftClaw.stateOverride(10); 
             rightClaw.stateOverride(10); 
-            if (millis() > delay) { 
+            if (bridge.detectRightEdge()) { 
                 state++; 
-                int angle = bridge.firstBridgeUpperAngle; 
-                delay = millis() + 2500; 
+                leftWheelCounter = 0; 
+                rightWheelCounter = 0; 
             } 
             break; 
         case 11: 
+            // Reverse 
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(-defaultSpeed); 
+
+            if (leftWheelCounter > edgeReverseDistance && rightWheelCounter > edgeReverseDistance) { 
+                state++; 
+                leftWheelCounter = 0; 
+                rightWheelCounter = 0; 
+            }
+            break; 
+        case 12: 
             // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
@@ -143,41 +150,88 @@ void MotorControl::poll() {
             delay = millis() + 50; 
             if (angle < bridge.firstBridgeLowerAngle) { 
                 state++;
-                delay = millis() + 1000; 
             }
             else { 
                 delay = millis() + 25; 
             }
             break; 
-        case 12: 
+        case 13: 
             // Reverse to drop bridge 
-            leftMotor.write(-130); 
-            rightMotor.write(-130); 
-            if (millis() > delay) { 
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(-defaultSpeed); 
+            if (leftWheelCounter > dropBridgeDistance && rightWheelCounter > dropBridgeDistance) { 
                 state++; 
+                leftWheelCounter = 0; 
+                rightWheelCounter = 0; 
                 delay = millis() + 1000; 
             }
             break; 
-        case 13: 
+        case 14: 
             // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
             bridge.raiseBridge1(); 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 3000; 
             }
             break; 
-        case 14: 
+        case 15: 
             // Drive over bridge
             leftMotor.write(defaultSpeed); 
             rightMotor.write(defaultSpeed);
             leftClaw.stateOverride(0); 
             rightClaw.stateOverride(0); 
-            if (millis() > delay) { 
+            if (leftWheelCounter > driveOverDistance && rightWheelCounter > driveOverDistance) { 
                 // start PID again 
-                state = 20; 
+                state = 100; 
+                leftWheelCounter = 0; 
+                rightWheelCounter = 0; 
             } 
+            break; 
+        case 16: 
+            // Find tape 
+            if (pidControl.leftOnTape && pidControl.rightOnTape) { 
+                state = 2; 
+                leftWheelCounter = 0; 
+                rightWheelCounter = 0; 
+            }
+            else if (!pidControl.rightOnTape) {
+                 rotateRight(); 
+            }
+            else if (!pidControl.leftOnTape) { 
+                rotateLeft(); 
+            }
+            else { 
+                // quarter turn
+                if (leftWheelCounter < angleToCounts(90)) { 
+                    rotateLeft(); 
+                }
+                else if (leftWheelCounter < 2*angleToCounts(90)) { 
+                    rotateRight(); 
+                }
+                else if (rightWheelCounter < angleToCounts(90)) { 
+                    rotateRight(); 
+                }
+                else if (rightWheelCounter < 2*angleToCounts(90)) { 
+                    rotateLeft(); 
+                }
+            }
+            break; 
+        case 20: 
+            // temporary 
+            // encoder rotation test 
+            if (leftWheelCounter < angleToCounts(90)) { 
+                rotateLeft(); 
+            }
+            else if (rightWheelCounter < angleToCounts(90)) { 
+                rotateRight(); 
+            }
+            else {
+                 leftWheelCounter = 0; 
+                 rightWheelCounter = 0; 
+                 state = 100; 
+            }
+
             break; 
         case 30: 
             // TODO
@@ -310,4 +364,19 @@ void MotorControl::rotateLeft() {
 void MotorControl::rotateRight() { 
     leftMotor.write(200); 
     rightMotor.write(-200);
+}
+
+int angleToCounts(int angle) { 
+    /**
+     *      Angle --> encoder counts
+     *      
+     *      num counts      angle 
+     *      ----------  *   -----
+     *         2pir          360
+    **/
+    float radius = wheelToWheelDistance / 2; 
+    float circumference = 3.14159265 * wheelDiameter; 
+    float arclength = (angle / 360) * (2*3.14159265 * radius); 
+    int encoderCounts = (countsPerRotation / circumference) * arclength; 
+    return encoderCounts; 
 }
