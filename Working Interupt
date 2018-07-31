@@ -1,0 +1,25 @@
+#include <Arduino.h>
+
+// Pins
+const int inputPin = PA11;
+
+void interuptHandler();
+
+//Variables
+volatile int counts = 0;
+
+void setup() {
+    Serial.begin(9600);
+    attachInterrupt(digitalPinToInterrupt(inputPin),interuptHandler,RISING);
+}
+
+void loop() {
+   
+    Serial.println(counts);
+    delay(100);
+}
+
+void interuptHandler(){
+    counts++;
+    return;
+}
