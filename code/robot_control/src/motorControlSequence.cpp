@@ -67,17 +67,17 @@ float angleToCounts(int angle) {
     **/
     float radius = wheelToWheelDistance / 2; 
     float circumference = 3.14159265 * wheelDiameter; 
-    float arclength = (angle / 360) * (2*3.14159265 * radius); 
+    float arclength = (angle / 360.0) * circumference; 
     float encoderCounts = (countsPerRotation / circumference) * arclength; 
-    Serial.println(encoderCounts); 
-    // Serial.println(leftWheelCounter); 
-    // Serial.println(rightWheelCounter);
+    Serial.print(radius); Serial.print(" "); Serial.print(circumference); Serial.print(" "); Serial.print(arclength); Serial.print(" "); Serial.println(encoderCounts); 
+    Serial.println(leftWheelCounter); 
+    Serial.println(rightWheelCounter);
     return encoderCounts; 
 }
 
 void MotorControl::poll() { 
 
-   specialStateChecker();
+//    specialStateChecker();
    globalMotorStateTracker = state; 
 
     switch(state) { 
@@ -240,8 +240,10 @@ void MotorControl::poll() {
             // encoder rotation test 
             if (leftWheelCounter < angleToCounts(90)) { 
                 rotateLeft(); 
+                rightWheelCounter = 0; 
+                delay = millis() + 100; 
             }
-            else if (rightWheelCounter < angleToCounts(90)) { 
+            else if (rightWheelCounter < angleToCounts(90) && millis() > delay) { 
                 rotateRight(); 
             }
             else {
@@ -269,7 +271,7 @@ void MotorControl::poll() {
             break; 
         case 100: 
             // Stop motors until state changes (ie. from IR class?)
-            leftMotor.write(0); 
+            leftMotor.write(255); 
             rightMotor.write(0); 
             break; 
         default: 

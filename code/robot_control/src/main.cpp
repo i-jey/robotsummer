@@ -132,11 +132,20 @@ int globalMotorStateTracker = 0;
 bool start; 
 bool toggle = false; 
 
+unsigned long leftEncoderDebounce = 0; 
+unsigned long rightEncoderDebounce = 0; 
+
 void leftEncoderIncrement() { 
-    leftWheelCounter++; 
+    if (millis() > leftEncoderDebounce) { 
+        leftWheelCounter++; 
+        leftEncoderDebounce = millis() + 10; 
+    }
 }
 void rightEncoderIncrement() { 
-    rightWheelCounter++;
+    if (millis() > rightEncoderDebounce) { 
+        rightWheelCounter++; 
+        rightEncoderDebounce = millis() + 10; 
+    }
 }
 
 void setup() {  
@@ -390,14 +399,18 @@ void loop() {
             oled.print("1", 50, 0); oled.update(); 
             delay(1000); 
 
-            motorControl.stateOverride(20, 0); // state 20 = rotate left 90, right 90
+            motorControl.stateOverride(100, 0); // state 20 = rotate left 90, right 90
             ewokCounter = 0; 
             edgeCounters = 0; 
+            leftWheelCounter = 0; 
+            rightWheelCounter = 0; 
         }
 
         oled.clrScr();
-        oled.print("Current state: ", 40, 40);
-        oled.printNumI(globalMotorStateTracker, 60, 0);  
+        oled.print("Current state: ", 0, 30);
+        oled.printNumI(globalMotorStateTracker, 100, 30);  
+        oled.printNumI(leftWheelCounter, 40, 50); 
+        oled.printNumI(rightWheelCounter, 80, 50); 
         oled.update(); 
         motorControl.poll(); 
         rightClaw.poll(); 

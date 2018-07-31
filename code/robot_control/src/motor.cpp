@@ -25,7 +25,6 @@ void Motor::reverse(int speed) {
 }
 
 void Motor::write(int speed) { 
-    Serial.println(speed); 
     if (speed > 255) {speed = 255;}
     else if (speed < -255) {speed = -255;}
     
