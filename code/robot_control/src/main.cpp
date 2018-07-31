@@ -187,14 +187,17 @@ int16_t readFromEEPROM(int loc) {
 }
 
 void initializeFromEEPROM() { 
-    // PID values
+    // Motor control values
     p = readFromEEPROM(MenuItems::menu_p); motorControl.updateP(p); 
     i = 0; motorControl.updateI(i);
     d = readFromEEPROM(MenuItems::menu_d); motorControl.updateD(d); 
     gain = readFromEEPROM(MenuItems::menu_gain); motorControl.updateGain(gain);
     qrdThreshold = readFromEEPROM(MenuItems::menu_qrdThreshold); motorControl.updateThreshold(qrdThreshold);
     defaultSpeed = readFromEEPROM(MenuItems::menu_defaultSpeed); motorControl.updateDefaultSpeed(defaultSpeed);
-
+    motorControl.edgeReverseDistance = readFromEEPROM(MenuItems::edgeReverseDistance); 
+    motorControl.dropBridgeDistance = readFromEEPROM(MenuItems::dropBridgeDistance); 
+    motorControl.driveOverDistance = readFromEEPROM(MenuItems::driveOverDistance); 
+    
     // Bridge values 
     edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); bridge.updateThreshold(edgeThreshold);
     bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
