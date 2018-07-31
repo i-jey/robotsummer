@@ -10,7 +10,7 @@ extern int globalMotorStateTracker;
 // Encoder global variables
 constexpr int countsPerRotation = 48; 
 constexpr float wheelDiameter = 6.14; // cm
-constexpr float wheelToWheelDistance = 10; // cm
+constexpr float wheelToWheelDistance = 17.78; // cm
 extern volatile int leftWheelCounter; 
 extern volatile int rightWheelCounter; 
 

@@ -197,7 +197,7 @@ void initializeFromEEPROM() {
     motorControl.edgeReverseDistance = readFromEEPROM(MenuItems::edgeReverseDistance); 
     motorControl.dropBridgeDistance = readFromEEPROM(MenuItems::dropBridgeDistance); 
     motorControl.driveOverDistance = readFromEEPROM(MenuItems::driveOverDistance); 
-    
+
     // Bridge values 
     edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); bridge.updateThreshold(edgeThreshold);
     bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
@@ -277,6 +277,9 @@ void pidMenu() {
     }
 }
 
+int erd; 
+int dbd; 
+int dod; 
 void bridgeMenu() { 
     int potVal = analogRead(menuPot); 
 
@@ -324,17 +327,17 @@ void bridgeMenu() {
                 bridge.updateThreshold(edgeThreshold); 
                 break; 
             case 1: 
-                int erd = potVal; 
+                erd = potVal; 
                 writeToEEPROM(MenuItems::edgeReverseDistance, erd); 
                 motorControl.edgeReverseDistance = erd; 
                 break; 
             case 2: 
-                int dbd = potVal; 
+                dbd = potVal; 
                 writeToEEPROM(MenuItems::dropBridgeDistance, dbd); 
                 motorControl.dropBridgeDistance = dbd; 
                 break; 
             case 3: 
-                int dod = potVal; 
+                dod = potVal; 
                 writeToEEPROM(MenuItems::driveOverDistance, dod); 
                 motorControl.driveOverDistance = dod; 
                 break; 
@@ -380,11 +383,11 @@ void loop() {
             oled.update(); 
             
             // grace period before it starts to go 
-            oled.print("3", 40, 0); oled.update(); 
+            oled.print("3", 50, 0); oled.update(); 
             delay(1000); 
-            oled.print("2", 40, 0); oled.update(); 
+            oled.print("2", 50, 0); oled.update(); 
             delay(1000); 
-            oled.print("1", 40, 0); oled.update(); 
+            oled.print("1", 50, 0); oled.update(); 
             delay(1000); 
 
             motorControl.stateOverride(20, 0); // state 20 = rotate left 90, right 90

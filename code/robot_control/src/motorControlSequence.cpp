@@ -57,6 +57,24 @@ void MotorControl::specialStateChecker() {
     }
 }
 
+float angleToCounts(int angle) { 
+    /**
+     *      Angle --> encoder counts
+     *      
+     *      num counts      angle 
+     *      ----------  *   -----
+     *         2pir          360
+    **/
+    float radius = wheelToWheelDistance / 2; 
+    float circumference = 3.14159265 * wheelDiameter; 
+    float arclength = (angle / 360) * (2*3.14159265 * radius); 
+    float encoderCounts = (countsPerRotation / circumference) * arclength; 
+    Serial.println(encoderCounts); 
+    // Serial.println(leftWheelCounter); 
+    // Serial.println(rightWheelCounter);
+    return encoderCounts; 
+}
+
 void MotorControl::poll() { 
 
    specialStateChecker();
@@ -190,15 +208,15 @@ void MotorControl::poll() {
             break; 
         case 16: 
             // Find tape 
-            if (pidControl.leftOnTape && pidControl.rightOnTape) { 
+            if (pidControl.leftOnTape() && pidControl.rightOnTape()) { 
                 state = 2; 
                 leftWheelCounter = 0; 
                 rightWheelCounter = 0; 
             }
-            else if (!pidControl.rightOnTape) {
+            else if (!pidControl.rightOnTape()) {
                  rotateRight(); 
             }
-            else if (!pidControl.leftOnTape) { 
+            else if (!pidControl.leftOnTape()) { 
                 rotateLeft(); 
             }
             else { 
@@ -366,17 +384,3 @@ void MotorControl::rotateRight() {
     rightMotor.write(-200);
 }
 
-int angleToCounts(int angle) { 
-    /**
-     *      Angle --> encoder counts
-     *      
-     *      num counts      angle 
-     *      ----------  *   -----
-     *         2pir          360
-    **/
-    float radius = wheelToWheelDistance / 2; 
-    float circumference = 3.14159265 * wheelDiameter; 
-    float arclength = (angle / 360) * (2*3.14159265 * radius); 
-    int encoderCounts = (countsPerRotation / circumference) * arclength; 
-    return encoderCounts; 
-}
