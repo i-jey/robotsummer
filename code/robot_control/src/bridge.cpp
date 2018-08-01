@@ -6,8 +6,7 @@ Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
     bridgeServo2.attach(bridgePin2); 
     this->QRDLeft = QRDLeftPin; 
     this->QRDRight = QRDRightPin;
-    // this->qrdThreshold = qrdThreshold;
-    this->qrdThreshold = 700;  
+    this->edgeThreshold = qrdThreshold;
     this->firstBridgeLowerAngle = firstBridgeLowerAngle; 
     this->firstBridgeUpperAngle = firstBridgeUpperAngle;
     bridgeServo1.write(firstBridgeUpperAngle);
@@ -16,16 +15,17 @@ Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
 bool Bridge::detectLeftEdge() { 
     int leftReading = getLeftEdgeReading(); 
 
-    if (leftReading > qrdThreshold) { 
+    if (leftReading > edgeThreshold) { 
         return true; 
     }
     return false; 
 }
 
-bool Bridge:: detectRightEdge() { 
-    int rightReading = getRightEdgeReading(); 
 
-    if (rightReading > qrdThreshold) { 
+bool Bridge::detectRightEdge() { 
+    int rightReading = getRightEdgeReading(); 
+    Serial.println(edgeThreshold); 
+    if (rightReading > edgeThreshold) { 
         return true; 
     }
     return false; 
@@ -62,7 +62,8 @@ int Bridge::getRightEdgeReading() {
 }
 
 void Bridge::updateThreshold(int newThreshold) { 
-    qrdThreshold = newThreshold; 
+    edgeThreshold = newThreshold; 
+    Serial.println(edgeThreshold);  
 }
 
 void Bridge::updateFirstBridgeLowerAngle(int newAngle) { 

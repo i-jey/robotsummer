@@ -32,6 +32,9 @@ class MotorControl {
         int iVal; 
         int dVal; 
 
+        // bridge 
+        int edgeThreshold; 
+        
         int angle; 
 
         // Local convenience functions
@@ -61,6 +64,8 @@ class MotorControl {
         void updateP(int newP); 
         void updateI(int newI); 
         void updateD(int newD); 
+
+        void updateEdgeThreshold(int newThreshold); 
 
         // First bridge sequence variables 
         int edgeReverseDistance = 0; 

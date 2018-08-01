@@ -9,11 +9,11 @@ volatile int leftWheelCounter = 0;
 volatile int rightWheelCounter = 0; 
 
 // EEPROM / menu reference 
-enum MenuItems { 
+enum MenuItems {
+    menu_qrdThreshold,
     menu_p,
     menu_d, 
-    menu_gain, 
-    menu_qrdThreshold, 
+    menu_gain,  
     menu_defaultSpeed, 
     edgeThresh, 
     firstBridgeLowerAngle, 
@@ -69,16 +69,16 @@ constexpr int left_arm_pin = PB6;
 constexpr int left_push_button = PB3; 
 
 // IR Pins 
-constexpr int irPin1 = PB12; 
-constexpr int irPin2 = PB13; 
+constexpr int irPin2 = PB12;
+constexpr int irPin1 = PB13;  
 
 // Basket pin 
 constexpr int basketPin = PA8; 
 
 // Bridge 
 int edgeThreshold = 500; 
-int bridge1LowerAngle = 47; 
-int bridge1UpperAngle = 110; 
+int bridge1LowerAngle = 40; 
+int bridge1UpperAngle = 140; 
 Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
 
 // PID constants
@@ -97,7 +97,7 @@ TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD);
 int leftClawCloseAngle = 140; 
 int leftClawOpenAngle = 50; 
 int leftClawOpenAngleInside; 
-int leftClawLowerAngle = 50; 
+int leftClawLowerAngle = 55; 
 int leftClawRaiseAngle = 180; 
 
 int rightClawCloseAngle = 0; 
@@ -136,22 +136,27 @@ unsigned long leftEncoderDebounce = 0;
 unsigned long rightEncoderDebounce = 0; 
 
 void leftEncoderIncrement() { 
-    if (millis() > leftEncoderDebounce) { 
-        leftWheelCounter++; 
-        leftEncoderDebounce = millis() + 10; 
-    }
+    // Serial.println("LEFT TRIGGERED"); 
+    // if (millis() > leftEncoderDebounce) { 
+    //     leftWheelCounter++; 
+    //     leftEncoderDebounce = millis() + 10; 
+    // }
+    leftWheelCounter++; 
 }
 void rightEncoderIncrement() { 
-    if (millis() > rightEncoderDebounce) { 
-        rightWheelCounter++; 
-        rightEncoderDebounce = millis() + 10; 
-    }
+    // if (millis() > rightEncoderDebounce) { 
+    //     rightWheelCounter++; 
+    //     rightEncoderDebounce = millis() + 10; 
+    // }
+    rightWheelCounter++;
 }
 
 void setup() {  
     Serial.begin(9600); 
     
     // Encoder interrupts 
+    pinMode(encoderLeft, INPUT_PULLDOWN); 
+    pinMode(encoderRight, INPUT_PULLDOWN); 
     attachInterrupt(encoderLeft, leftEncoderIncrement, RISING); 
     attachInterrupt(encoderRight, rightEncoderIncrement, RISING); 
 
@@ -171,6 +176,10 @@ void setup() {
     leftArm.open(false); 
     rightArm.lower(); 
     leftArm.lower(); 
+
+    // IR 
+    pinMode(irPin1, INPUT_PULLDOWN); 
+    pinMode(irPin2, INPUT_PULLDOWN); 
 
     // Menu dials and OLED
     pinMode(oled_scl, INPUT_PULLUP); 
@@ -208,7 +217,7 @@ void initializeFromEEPROM() {
     motorControl.driveOverDistance = readFromEEPROM(MenuItems::driveOverDistance); 
 
     // Bridge values 
-    edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); bridge.updateThreshold(edgeThreshold);
+    edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); motorControl.updateEdgeThreshold(edgeThreshold);
     bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
     bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle);
 }
@@ -253,7 +262,7 @@ void pidMenu() {
             case MenuItems::menu_p:
                 p = potVal; 
                 writeToEEPROM(MenuItems::menu_p, p); 
-                motorControl.updateP(p);  
+                motorControl.updateP(p);
                 break; 
             case MenuItems::menu_d: 
                 d = potVal; 
@@ -294,9 +303,9 @@ void bridgeMenu() {
 
     oled.print("Bridge Menu", 0, 0); 
     oled.print("Thresh: ", 0, 10); 
-    oled.print("Reverse from edge counts: ", 0, 20); 
-    oled.print("drop bridge reverse counts: ", 0, 30); 
-    oled.print("drive over counts: ", 0, 40); 
+    oled.print("Reverse1 time[ms]: ", 0, 20); 
+    oled.print("Reverse2 time[ms]: ", 0, 30); 
+    oled.print("Over time[ms]: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(100); // Debouncing delay 
@@ -321,10 +330,10 @@ void bridgeMenu() {
     oled.printNumI(motorControl.dropBridgeDistance, RIGHT, 30); 
     oled.printNumI(motorControl.driveOverDistance, RIGHT, 40); 
 
-    // Display count --> distance conversion 
-    oled.printNumI(motorControl.edgeReverseDistance * wheelDiameter * 3.14159265, 100, 20); 
-    oled.printNumI(motorControl.dropBridgeDistance * wheelDiameter * 3.14159265, 100, 30); 
-    oled.printNumI(motorControl.driveOverDistance * wheelDiameter * 3.14159265, 100, 40);
+    // // Display count --> distance conversion 
+    // oled.printNumI(motorControl.edgeReverseDistance * wheelDiameter * 3.14159265, 100, 20); 
+    // oled.printNumI(motorControl.dropBridgeDistance * wheelDiameter * 3.14159265, 100, 30); 
+    // oled.printNumI(motorControl.driveOverDistance * wheelDiameter * 3.14159265, 100, 40);
     
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -333,7 +342,7 @@ void bridgeMenu() {
             case 0:
                 edgeThreshold = potVal; 
                 writeToEEPROM(MenuItems::edgeThresh, edgeThreshold); 
-                bridge.updateThreshold(edgeThreshold); 
+                motorControl.updateEdgeThreshold(edgeThreshold); 
                 break; 
             case 1: 
                 erd = potVal; 
@@ -369,7 +378,7 @@ void loop() {
             initializeFromEEPROM(); 
             initialize = false;
         }
-        if (digitalRead(menuToggle)) {switchMenus = !switchMenus;}
+        if (digitalRead(menuToggle)) {switchMenus = !switchMenus; optionState = 0;}
         oled.clrScr(); 
         
         if (switchMenus) { 
@@ -385,6 +394,7 @@ void loop() {
     else {
         if (initMotors) {
             initMotors = false; 
+
             motorInit.init();
 
             oled.clrScr(); 
@@ -392,14 +402,14 @@ void loop() {
             oled.update(); 
             
             // grace period before it starts to go 
-            oled.print("3", 50, 0); oled.update(); 
+            oled.print("3", 60, 30); oled.update(); 
             delay(1000); 
-            oled.print("2", 50, 0); oled.update(); 
+            oled.print("2", 60, 30); oled.update(); 
             delay(1000); 
-            oled.print("1", 50, 0); oled.update(); 
+            oled.print("1", 60, 30); oled.update(); 
             delay(1000); 
 
-            motorControl.stateOverride(100, 0); // state 20 = rotate left 90, right 90
+            motorControl.stateOverride(0, 0); // state 0 = continuous forward drive
             ewokCounter = 0; 
             edgeCounters = 0; 
             leftWheelCounter = 0; 
@@ -408,18 +418,12 @@ void loop() {
 
         oled.clrScr();
         oled.print("Current state: ", 0, 30);
-        oled.printNumI(globalMotorStateTracker, 100, 30);  
-        oled.printNumI(leftWheelCounter, 40, 50); 
-        oled.printNumI(rightWheelCounter, 80, 50); 
+        oled.printNumI(globalMotorStateTracker, RIGHT, 30);  
+        oled.printNumI(digitalRead(irPin1), 40, 50); 
+        oled.printNumI(digitalRead(irPin2), 80, 50); 
         oled.update(); 
         motorControl.poll(); 
         rightClaw.poll(); 
         leftClaw.poll(); 
-
-        if (temp==1) {
-            // Change to bridge sequence motor state
-            motorControl.stateOverride(10, 1000);
-            temp = 0;
-        }
     }
 }

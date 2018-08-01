@@ -7,7 +7,7 @@ class Bridge {
         Servo bridgeServo2; 
         int QRDLeft; 
         int QRDRight; 
-        int qrdThreshold; 
+        int edgeThreshold;
 
     public: 
         Bridge(); 
@@ -27,7 +27,7 @@ class Bridge {
         uint8_t firstBridgeUpperAngle; 
         uint8_t firstBridgeLowerAngle; 
         uint8_t secondBridgeLowerAngle; 
-        uint8_t secondBridgeUpperAngle; 
+        uint8_t secondBridgeUpperAngle;  
 };
 
 #endif

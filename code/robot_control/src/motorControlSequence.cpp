@@ -17,6 +17,9 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     this->pVal = p; 
     this->iVal = i; 
     this->dVal = d; 
+
+    // Initialize bridge angle 
+    bridge.raiseBoth(); 
     
 }
 
@@ -28,7 +31,7 @@ void MotorControl::specialStateChecker() {
         return; 
     }
     // Bridge special sequences 
-    if (bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
+    if (bridge.detectLeftEdge()) { 
         specialStateDelay = millis() + 5000; 
         if (edgeCounters == 0) { 
             // Switch to first bridge sequence
@@ -44,17 +47,17 @@ void MotorControl::specialStateChecker() {
         }
     }
 
-    // IR special sequences  
-    if (ir.read1k()) { 
-        // Switch to wait state
-        // state = 100; 
-        leftClaw.stateOverride(10); // Lift left arm
-    }
-    else if (ir.read10k()) { 
-        // Switch to haul ass + left arm up state
-        // state = 2; 
-        rightClaw.stateOverride(10); // Raise right arm
-    }
+    // // IR special sequences  
+    // if (ir.read1k()) { 
+    //     // Switch to wait state
+    //     // state = 100; 
+    //     leftClaw.stateOverride(10); // Lift left arm
+    // }
+    // else if (ir.read10k()) { 
+    //     // Switch to haul ass + left arm up state
+    //     // state = 2; 
+    //     rightClaw.stateOverride(10); // Raise right arm
+    // }
 }
 
 float angleToCounts(int angle) { 
@@ -65,20 +68,15 @@ float angleToCounts(int angle) {
      *      ----------  *   -----
      *         2pir          360
     **/
-    float radius = wheelToWheelDistance / 2; 
     float circumference = 3.14159265 * wheelDiameter; 
-    float arclength = (angle / 360.0) * circumference; 
-    float encoderCounts = (countsPerRotation / circumference) * arclength; 
-    Serial.print(radius); Serial.print(" "); Serial.print(circumference); Serial.print(" "); Serial.print(arclength); Serial.print(" "); Serial.println(encoderCounts); 
-    Serial.println(leftWheelCounter); 
-    Serial.println(rightWheelCounter);
+    float arclength = (angle / 360.0) * 3.14159265*wheelToWheelDistance; 
+    float encoderCounts = (countsPerRotation / circumference) * arclength;
     return encoderCounts; 
 }
 
 void MotorControl::poll() { 
-
-//    specialStateChecker();
-   globalMotorStateTracker = state; 
+    specialStateChecker();
+    globalMotorStateTracker = state; 
 
     switch(state) { 
         case 0:  
@@ -136,28 +134,43 @@ void MotorControl::poll() {
         // FIRST BRIDGE SEQUENCE
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(0); 
-            rightMotor.write(defaultSpeed); 
+            leftMotor.write(-150); 
+            rightMotor.write(150); 
+            // Lift claws 
             leftClaw.stateOverride(10); 
             rightClaw.stateOverride(10); 
+
             if (bridge.detectRightEdge()) { 
                 state++; 
                 leftWheelCounter = 0; 
-                rightWheelCounter = 0; 
+                rightWheelCounter = 0;
+                delay = millis() + 1000;  
             } 
             break; 
         case 11: 
+            // Temporary stop 
+            leftMotor.write(0); 
+            rightMotor.write(0); 
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + edgeReverseDistance; 
+            }
+            break;
+        case 12: 
             // Reverse 
             leftMotor.write(-defaultSpeed); 
             rightMotor.write(-defaultSpeed); 
 
-            if (leftWheelCounter > edgeReverseDistance && rightWheelCounter > edgeReverseDistance) { 
-                state++; 
-                leftWheelCounter = 0; 
-                rightWheelCounter = 0; 
+            // if (leftWheelCounter > edgeReverseDistance && rightWheelCounter > edgeReverseDistance) { 
+            //     state++; 
+            //     leftWheelCounter = 0; 
+            //     rightWheelCounter = 0; 
+            // }
+            if (millis() > delay) { 
+                state++;  
             }
             break; 
-        case 12: 
+        case 13: 
             // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
@@ -165,48 +178,57 @@ void MotorControl::poll() {
             // Lower bridge 
             bridge.lowerBridge1(angle); 
             angle--; 
-            delay = millis() + 50; 
+            
             if (angle < bridge.firstBridgeLowerAngle) { 
                 state++;
+                delay = millis() + dropBridgeDistance; 
             }
             else { 
                 delay = millis() + 25; 
             }
             break; 
-        case 13: 
+        case 14: 
             // Reverse to drop bridge 
             leftMotor.write(-defaultSpeed); 
             rightMotor.write(-defaultSpeed); 
-            if (leftWheelCounter > dropBridgeDistance && rightWheelCounter > dropBridgeDistance) { 
+            // if (leftWheelCounter > dropBridgeDistance && rightWheelCounter > dropBridgeDistance) { 
+            //     state++; 
+            //     leftWheelCounter = 0; 
+            //     rightWheelCounter = 0; 
+            //     delay = millis() + 1000; 
+            // }
+            if (millis() > delay) { 
                 state++; 
-                leftWheelCounter = 0; 
-                rightWheelCounter = 0; 
                 delay = millis() + 1000; 
             }
             break; 
-        case 14: 
+        case 15: 
             // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
             bridge.raiseBridge1(); 
             if (millis() > delay) { 
                 state++; 
+                delay = millis() + driveOverDistance;
             }
             break; 
-        case 15: 
+        case 16: 
             // Drive over bridge
             leftMotor.write(defaultSpeed); 
             rightMotor.write(defaultSpeed);
             leftClaw.stateOverride(0); 
             rightClaw.stateOverride(0); 
-            if (leftWheelCounter > driveOverDistance && rightWheelCounter > driveOverDistance) { 
-                // start PID again 
+            // if (leftWheelCounter > driveOverDistance && rightWheelCounter > driveOverDistance) { 
+            //     // start PID again 
+            //     state = 100; 
+            //     leftWheelCounter = 0; 
+            //     rightWheelCounter = 0; 
+            // } 
+            if (millis() > delay) { 
                 state = 100; 
-                leftWheelCounter = 0; 
-                rightWheelCounter = 0; 
-            } 
+            }
             break; 
-        case 16: 
+        case 17: 
             // Find tape 
             if (pidControl.leftOnTape() && pidControl.rightOnTape()) { 
                 state = 2; 
@@ -271,8 +293,8 @@ void MotorControl::poll() {
             break; 
         case 100: 
             // Stop motors until state changes (ie. from IR class?)
-            leftMotor.write(255); 
-            rightMotor.write(0); 
+            leftMotor.write(0); 
+            rightMotor.write(0);  
             break; 
         default: 
             break; 
@@ -352,6 +374,11 @@ void MotorControl::updateD(int newD) {
 }
 
 
+void MotorControl::updateEdgeThreshold(int newThreshold) { 
+    edgeThreshold = newThreshold; 
+    bridge.updateThreshold(edgeThreshold); 
+}
+
 //// High level motor control functions //// 
 
 void MotorControl::continuousForward() { 
@@ -370,8 +397,6 @@ void MotorControl::pid() {
     updateSpeedLeft(pidControl.getLeftMotorSpeed()); 
     updateSpeedRight(pidControl.getRightMotorSpeed()); 
     
-    Serial.print(speedLeft); Serial.print(" "); Serial.println(speedRight); 
-    
     leftMotor.write(speedLeft); 
     rightMotor.write(speedRight); 
 }
@@ -385,4 +410,3 @@ void MotorControl::rotateRight() {
     leftMotor.write(200); 
     rightMotor.write(-200);
 }
-
