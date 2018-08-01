@@ -97,13 +97,13 @@ TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD);
 int leftClawCloseAngle = 140; 
 int leftClawOpenAngle = 50; 
 int leftClawOpenAngleInside; 
-int leftClawLowerAngle = 55; 
+int leftClawLowerAngle = 45; 
 int leftClawRaiseAngle = 180; 
 
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 110; 
 int rightClawOpenAngleInside = 127; 
-int rightClawLowerAngle = 133; 
+int rightClawLowerAngle = 123; 
 int rightClawRaiseAngle = 10; 
 int rightVertical = 40; 
 
@@ -112,7 +112,7 @@ int raiseTime = 1000;
 int openTime = 500; 
 int closeTime2 = 500; 
 int lowerTime = 1000; 
-int resetTime = 500; 
+int resetTime = 1000; 
 
 // Initialize arms and claws 
 Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle); 
@@ -220,6 +220,15 @@ void initializeFromEEPROM() {
     edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); motorControl.updateEdgeThreshold(edgeThreshold);
     bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
     bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle);
+
+    // Default values after flashing 
+    if (p == -1) {p = 4; motorControl.updateP(p);}
+    if (d == -1) {d = 4; motorControl.updateD(d);}
+    if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
+    if (defaultSpeed == -1) {defaultSpeed = 180; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 220;}
+    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 330;}
+    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1000;}
 }
 
 int optionState = 0; 
@@ -233,7 +242,7 @@ void pidMenu() {
     oled.print("gain: ", 0, 40); 
     oled.print("Speed: ", 0, 50); 
 
-    delay(100); // Debouncing delay 
+    delay(150); // Debouncing delay 
 
     if (digitalRead(menuPlus)) {
         if (optionState >= 4)  {
@@ -308,7 +317,7 @@ void bridgeMenu() {
     oled.print("Over time[ms]: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
-    delay(100); // Debouncing delay 
+    delay(150); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
         if (optionState >= 3) { 
@@ -340,7 +349,7 @@ void bridgeMenu() {
     
         switch (optionState) { 
             case 0:
-                edgeThreshold = potVal; 
+                edgeThreshold = (potVal / 10) * 10; 
                 writeToEEPROM(MenuItems::edgeThresh, edgeThreshold); 
                 motorControl.updateEdgeThreshold(edgeThreshold); 
                 break; 
@@ -409,7 +418,7 @@ void loop() {
             oled.print("1", 60, 30); oled.update(); 
             delay(1000); 
 
-            motorControl.stateOverride(0, 0); // state 0 = continuous forward drive
+            motorControl.stateOverride(2, 0); // state 0 = continuous forward drive
             ewokCounter = 0; 
             edgeCounters = 0; 
             leftWheelCounter = 0; 
@@ -419,8 +428,8 @@ void loop() {
         oled.clrScr();
         oled.print("Current state: ", 0, 30);
         oled.printNumI(globalMotorStateTracker, RIGHT, 30);  
-        oled.printNumI(digitalRead(irPin1), 40, 50); 
-        oled.printNumI(digitalRead(irPin2), 80, 50); 
+        oled.print("Ewok counter: ", 0, 50);
+        oled.printNumI(ewokCounter, 50, 50); 
         oled.update(); 
         motorControl.poll(); 
         rightClaw.poll(); 

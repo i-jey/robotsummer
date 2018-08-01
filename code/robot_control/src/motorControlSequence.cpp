@@ -19,7 +19,7 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     this->dVal = d; 
 
     // Initialize bridge angle 
-    bridge.raiseBoth(); 
+    bridge.raiseBridge1(); 
     
 }
 
@@ -33,7 +33,7 @@ void MotorControl::specialStateChecker() {
     // Bridge special sequences 
     if (bridge.detectLeftEdge()) { 
         specialStateDelay = millis() + 5000; 
-        if (edgeCounters == 0) { 
+        if (edgeCounters == 0 && ewokCounter >= 1) { 
             // Switch to first bridge sequence
             state = 10; 
             edgeCounters++; 
@@ -134,8 +134,8 @@ void MotorControl::poll() {
         // FIRST BRIDGE SEQUENCE
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(-150); 
-            rightMotor.write(150); 
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(defaultSpeed); 
             // Lift claws 
             leftClaw.stateOverride(10); 
             rightClaw.stateOverride(10); 
