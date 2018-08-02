@@ -24,7 +24,6 @@ bool Bridge::detectLeftEdge() {
 
 bool Bridge::detectRightEdge() { 
     int rightReading = getRightEdgeReading(); 
-    Serial.println(edgeThreshold); 
     if (rightReading > edgeThreshold) { 
         return true; 
     }
@@ -63,7 +62,6 @@ int Bridge::getRightEdgeReading() {
 
 void Bridge::updateThreshold(int newThreshold) { 
     edgeThreshold = newThreshold; 
-    Serial.println(edgeThreshold);  
 }
 
 void Bridge::updateFirstBridgeLowerAngle(int newAngle) { 

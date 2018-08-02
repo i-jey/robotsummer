@@ -2,10 +2,10 @@
 #define INCLUDES_H 
 
 // Global variables 
-extern int temp;
 extern int ewokCounter;  
 extern int edgeCounters; 
 extern int globalMotorStateTracker; 
+extern int globalClawStateTracker; 
 
 // Encoder global variables
 constexpr int countsPerRotation = 48; 
@@ -13,6 +13,7 @@ constexpr float wheelDiameter = 6.14; // cm
 constexpr float wheelToWheelDistance = 17.78; // cm
 extern volatile int leftWheelCounter; 
 extern volatile int rightWheelCounter; 
+
 
 // libraries 
 #include <Arduino.h>

@@ -1,9 +1,9 @@
 #include "includes.h"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
-// Temp global variable
-int temp = 0; 
+// Global variable initialization 
 int ewokCounter = 0; 
+int globalClawStateTracker = 0; 
 int edgeCounters = 0; 
 volatile int leftWheelCounter = 0; 
 volatile int rightWheelCounter = 0; 
@@ -69,8 +69,8 @@ constexpr int left_arm_pin = PB6;
 constexpr int left_push_button = PB3; 
 
 // IR Pins 
-constexpr int irPin2 = PB12;
-constexpr int irPin1 = PB13;  
+constexpr int irPin1k = PB13;
+constexpr int irPin10k = PB12;  
 
 // Basket pin 
 constexpr int basketPin = PA8; 
@@ -78,7 +78,7 @@ constexpr int basketPin = PA8;
 // Bridge 
 int edgeThreshold = 500; 
 int bridge1LowerAngle = 40; 
-int bridge1UpperAngle = 140; 
+int bridge1UpperAngle = 130; 
 Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
 
 // PID constants
@@ -89,7 +89,7 @@ int gain = 0;
 int qrdThreshold = 0; 
 int defaultSpeed = 120; 
 
-IRReader ir = IRReader(irPin1, irPin2); 
+IRReader ir = IRReader(irPin1k, irPin10k); 
 Basket basket = Basket(basketPin);
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
@@ -103,7 +103,7 @@ int leftClawRaiseAngle = 180;
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 110; 
 int rightClawOpenAngleInside = 127; 
-int rightClawLowerAngle = 123; 
+int rightClawLowerAngle = 127; 
 int rightClawRaiseAngle = 10; 
 int rightVertical = 40; 
 
@@ -178,8 +178,8 @@ void setup() {
     leftArm.lower(); 
 
     // IR 
-    pinMode(irPin1, INPUT_PULLDOWN); 
-    pinMode(irPin2, INPUT_PULLDOWN); 
+    pinMode(irPin1k, INPUT_PULLDOWN); 
+    pinMode(irPin10k, INPUT_PULLDOWN); 
 
     // Menu dials and OLED
     pinMode(oled_scl, INPUT_PULLUP); 
@@ -218,17 +218,19 @@ void initializeFromEEPROM() {
 
     // Bridge values 
     edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); motorControl.updateEdgeThreshold(edgeThreshold);
-    bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
-    bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle);
+    // bridge1LowerAngle = readFromEEPROM(MenuItems::firstBridgeLowerAngle); bridge.updateFirstBridgeLowerAngle(bridge1LowerAngle);
+    // bridge1UpperAngle = readFromEEPROM(MenuItems::firstBridgeUpperAngle); bridge.updateFirstBridgeUpperAngle(bridge1UpperAngle);
 
     // Default values after flashing 
     if (p == -1) {p = 4; motorControl.updateP(p);}
-    if (d == -1) {d = 4; motorControl.updateD(d);}
+    if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 180; motorControl.updateDefaultSpeed(defaultSpeed);}
-    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 220;}
-    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 330;}
+    if (defaultSpeed == -1) {defaultSpeed = 190; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
+    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 250;}
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1000;}
+    if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
+    if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
 }
 
 int optionState = 0; 
@@ -410,6 +412,14 @@ void loop() {
             oled.print("PL2 W0RK", 40, 50); 
             oled.update(); 
             
+            // reset global values 
+            ewokCounter = 0; 
+            globalClawStateTracker = 0; rightClaw.reset(); leftClaw.reset(); rightArm.lower(); rightArm.open(false); leftArm.raise(); leftArm.close(); 
+            edgeCounters = 0; 
+            leftWheelCounter = 0; 
+            rightWheelCounter = 0; 
+            motorControl.reset(); 
+
             // grace period before it starts to go 
             oled.print("3", 60, 30); oled.update(); 
             delay(1000); 
@@ -419,20 +429,45 @@ void loop() {
             delay(1000); 
 
             motorControl.stateOverride(2, 0); // state 0 = continuous forward drive
-            ewokCounter = 0; 
-            edgeCounters = 0; 
-            leftWheelCounter = 0; 
-            rightWheelCounter = 0; 
         }
 
         oled.clrScr();
-        oled.print("Current state: ", 0, 30);
-        oled.printNumI(globalMotorStateTracker, RIGHT, 30);  
-        oled.print("Ewok counter: ", 0, 50);
-        oled.printNumI(ewokCounter, 50, 50); 
+        oled.print("PL2 W0RK", 40, 0); 
+        oled.print("Current state: ", 0, 20);
+        oled.printNumI(globalMotorStateTracker, RIGHT, 20);  
+        oled.print("Ewok counter: ", 0, 30);
+        oled.printNumI(ewokCounter, RIGHT, 30); 
+        oled.print("1k: ", 0, 40);
+        oled.printNumI(digitalRead(irPin1k), RIGHT, 40);
+        oled.print("10k: ", 0, 50); 
+        oled.printNumI(digitalRead(irPin10k), RIGHT, 50);   
         oled.update(); 
         motorControl.poll(); 
         rightClaw.poll(); 
-        leftClaw.poll(); 
+        // leftClaw.poll(); 
+
+        if (globalClawStateTracker == 0) {
+            rightClaw.stateOverride(0);
+            leftClaw.stateOverride(0);  
+        }
+        else if (globalClawStateTracker == 1) { 
+            // right up
+            rightClaw.stateOverride(10); 
+        }
+        else if (globalClawStateTracker == 2) { 
+            // left up 
+            leftClaw.stateOverride(10); 
+        }
+        else if (globalClawStateTracker == 3) { 
+            // both up
+            leftClaw.stateOverride(10); 
+            rightClaw.stateOverride(10); 
+        }
+        else if (globalClawStateTracker == 4) { 
+            // left down, right up 
+            leftClaw.stateOverride(11); 
+            rightClaw.stateOverride(10); 
+        }
+        globalClawStateTracker = 99; 
     }
 }

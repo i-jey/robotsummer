@@ -1,6 +1,5 @@
 #include "includes.h"
 #define INSIDE 1
-bool firstEwok = false; 
 
 ClawSequence::ClawSequence(){};
 ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime) { 
@@ -58,6 +57,7 @@ void ClawSequence::poll() {
             arm.close(); 
             state++; 
             delay = millis() + closeTime2; 
+
             break; 
         case 4: 
             arm.lower(); 
@@ -70,6 +70,7 @@ void ClawSequence::poll() {
             delay = millis() + resetTime; 
             break; 
         case 10:
+            arm.close(); 
             arm.raise();  
             break; 
         case 11: 

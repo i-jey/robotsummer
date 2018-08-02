@@ -22,9 +22,6 @@ class MotorControl {
         int speedLeft;
         int speedRight;
 
-        // Special state trackers 
-        bool irGoNoGo; 
-
         // PID
         int qrdThreshold; 
         int gain; 
@@ -49,9 +46,10 @@ class MotorControl {
     public: 
         MotorControl();
         MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
-            Basket &basket, TapeFollow &pidControl, ClawSequence leftClaw, ClawSequence rightClaw, 
+            Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, 
             int qrdThreshold, int gain, int p, int i, int d);
 
+        void reset(); 
         void specialStateChecker(); 
         void poll(); 
         void stateOverride(int specialState, int delay); 

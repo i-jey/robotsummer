@@ -1,8 +1,16 @@
 #include "includes.h" 
 
+// flags 
+bool firstBridgeSequenceDone = false; 
+bool throughGate = false; 
+bool afterStormtroopers = true; 
+bool detected1k = false; 
+bool irGo = false; 
+int reducedSpeed;
+
 MotorControl::MotorControl(){};
 MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
-    Basket &basket, TapeFollow &pidControl, ClawSequence leftClaw, ClawSequence rightClaw, int qrdThreshold, int gain, int p, int i, int d) { 
+    Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, int qrdThreshold, int gain, int p, int i, int d) { 
 
     this->leftMotor = leftMotor; 
     this->rightMotor = rightMotor; 
@@ -20,44 +28,72 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
 
     // Initialize bridge angle 
     bridge.raiseBridge1(); 
-    
+    bridge.firstBridgeLowerAngle = 40;
+    bridge.firstBridgeUpperAngle = 130; 
+
+    reducedSpeed = 130; 
+}
+
+void MotorControl::reset() { 
+    firstBridgeSequenceDone = false; 
+    throughGate = false; 
+    afterStormtroopers = true; 
+    detected1k = false; 
+    irGo = false; 
+    reducedSpeed = defaultSpeed - 45;
 }
 
 void MotorControl::specialStateChecker() {
     // Special state delay is used to prevent repeating a state (i.e restarting first bridge sequence multiple times as
     // it pulls away from the edge)
-
+    
     if (millis() < specialStateDelay) { 
         return; 
     }
+
     // Bridge special sequences 
     if (bridge.detectLeftEdge()) { 
-        specialStateDelay = millis() + 5000; 
-        if (edgeCounters == 0 && ewokCounter >= 1) { 
+        specialStateDelay = millis() + 50; 
+
+        if (edgeCounters == 0 && ewokCounter == 1) { 
             // Switch to first bridge sequence
             state = 10; 
             edgeCounters++; 
-            angle = bridge.firstBridgeUpperAngle;
+            globalClawStateTracker = 2; // Lift left arm
         }
-        else if (edgeCounters == 1) { 
-            // Switch to second bridge sequence, lower both arms again
-            leftClaw.stateOverride(0); 
-            rightClaw.stateOverride(0); 
-            angle = bridge.secondBridgeUpperAngle;
+
+        if (edgeCounters == 1 && ewokCounter == 3) { 
+            // Switch to second edge sequence
+            state = 20; 
         }
     }
 
-    // // IR special sequences  
-    // if (ir.read1k()) { 
-    //     // Switch to wait state
-    //     // state = 100; 
-    //     leftClaw.stateOverride(10); // Lift left arm
-    // }
-    // else if (ir.read10k()) { 
-    //     // Switch to haul ass + left arm up state
-    //     // state = 2; 
-    //     rightClaw.stateOverride(10); // Raise right arm
-    // }
+    // IR special sequences  
+    if (ir.read1k() || ir.read10k()) { 
+        if (detected1k == false && firstBridgeSequenceDone == true && ewokCounter == 2) { 
+            // Switch to wait state
+            state = 100;  
+            if (ir.read1k()) {detected1k = true;}
+            globalClawStateTracker = 2; // Lift left arm 
+        }
+        else if (ir.read10k() && !ir.read1k() && irGo == false && firstBridgeSequenceDone == true) { 
+            // Switch to haul ass
+            state = 2; 
+            irGo = true; 
+            defaultSpeed = reducedSpeed; // Slow down once 10k is detected to go through gate and pick up ewok
+        }
+    }
+    if (ewokCounter == 2 && !throughGate) { 
+        // Freeze, both hands up! oh god please don't shoot please im too yung
+        globalClawStateTracker = 3; 
+        throughGate = true; 
+        specialStateDelay = millis() + 3000; // 4 second delay to get from gate to after storm troopers before bring left claw down
+    }
+    if (millis() > specialStateDelay && ewokCounter == 2 && afterStormtroopers) { 
+        // Left claw down, keep right up 
+        globalClawStateTracker = 4; 
+        afterStormtroopers = false; 
+    }
 }
 
 float angleToCounts(int angle) { 
@@ -134,11 +170,8 @@ void MotorControl::poll() {
         // FIRST BRIDGE SEQUENCE
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(defaultSpeed); 
-            // Lift claws 
-            leftClaw.stateOverride(10); 
-            rightClaw.stateOverride(10); 
+            leftMotor.write(-180); 
+            rightMotor.write(0); 
 
             if (bridge.detectRightEdge()) { 
                 state++; 
@@ -168,6 +201,7 @@ void MotorControl::poll() {
             // }
             if (millis() > delay) { 
                 state++;  
+                angle = bridge.firstBridgeUpperAngle;
             }
             break; 
         case 13: 
@@ -175,17 +209,18 @@ void MotorControl::poll() {
             leftMotor.write(0); 
             rightMotor.write(0); 
 
-            // Lower bridge 
-            bridge.lowerBridge1(angle); 
-            angle--; 
-            
+            if (millis() > delay) { 
+                // Lower bridge 
+                bridge.lowerBridge1(angle); 
+                angle--;
+                delay = millis() + 15; 
+            }
+        
             if (angle < bridge.firstBridgeLowerAngle) { 
                 state++;
                 delay = millis() + dropBridgeDistance; 
             }
-            else { 
-                delay = millis() + 25; 
-            }
+
             break; 
         case 14: 
             // Reverse to drop bridge 
@@ -206,73 +241,31 @@ void MotorControl::poll() {
             // Stop motors 
             leftMotor.write(0); 
             rightMotor.write(0); 
-            bridge.raiseBridge1(); 
             if (millis() > delay) { 
                 state++; 
+                bridge.raiseBridge1(); 
                 delay = millis() + driveOverDistance;
             }
             break; 
         case 16: 
             // Drive over bridge
-            leftMotor.write(defaultSpeed); 
-            rightMotor.write(defaultSpeed);
-            leftClaw.stateOverride(0); 
-            rightClaw.stateOverride(0); 
+            leftMotor.write(150 + 15); 
+            rightMotor.write(150 - 15); 
             // if (leftWheelCounter > driveOverDistance && rightWheelCounter > driveOverDistance) { 
             //     // start PID again 
             //     state = 100; 
             //     leftWheelCounter = 0; 
             //     rightWheelCounter = 0; 
             // } 
-            if (millis() > delay) { 
-                state = 100; 
-            }
-            break; 
-        case 17: 
-            // Find tape 
-            if (pidControl.leftOnTape() && pidControl.rightOnTape()) { 
+
+            if (millis() > delay && (pidControl.leftOnTape() || pidControl.rightOnTape())) { 
                 state = 2; 
-                leftWheelCounter = 0; 
-                rightWheelCounter = 0; 
+                firstBridgeSequenceDone = true; 
             }
-            else if (!pidControl.rightOnTape()) {
-                 rotateRight(); 
-            }
-            else if (!pidControl.leftOnTape()) { 
-                rotateLeft(); 
-            }
-            else { 
-                // quarter turn
-                if (leftWheelCounter < angleToCounts(90)) { 
-                    rotateLeft(); 
-                }
-                else if (leftWheelCounter < 2*angleToCounts(90)) { 
-                    rotateRight(); 
-                }
-                else if (rightWheelCounter < angleToCounts(90)) { 
-                    rotateRight(); 
-                }
-                else if (rightWheelCounter < 2*angleToCounts(90)) { 
-                    rotateLeft(); 
-                }
-            }
-            break; 
-        case 20: 
-            // temporary 
-            // encoder rotation test 
-            if (leftWheelCounter < angleToCounts(90)) { 
-                rotateLeft(); 
-                rightWheelCounter = 0; 
-                delay = millis() + 100; 
-            }
-            else if (rightWheelCounter < angleToCounts(90) && millis() > delay) { 
-                rotateRight(); 
-            }
-            else {
-                 leftWheelCounter = 0; 
-                 rightWheelCounter = 0; 
-                 state = 100; 
-            }
+        
+            // if (pidControl.leftOnTape() || pidControl.rightOnTape() ) { 
+            //     state = 2; 
+            // }
 
             break; 
         case 30: 
@@ -292,9 +285,10 @@ void MotorControl::poll() {
             // Hold whatever motor speeds are currently going
             break; 
         case 100: 
-            // Stop motors until state changes (ie. from IR class?)
+            // Stop motors until delay is up
             leftMotor.write(0); 
             rightMotor.write(0);  
+            // globalClawStateTracker = 1; 
             break; 
         default: 
             break; 
