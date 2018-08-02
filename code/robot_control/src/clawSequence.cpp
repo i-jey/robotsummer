@@ -74,6 +74,7 @@ void ClawSequence::poll() {
             arm.raise();  
             break; 
         case 11: 
+            arm.open(!INSIDE); 
             arm.lower(); 
             break;
         default: 

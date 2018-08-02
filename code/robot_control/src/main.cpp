@@ -1,6 +1,7 @@
 #include "includes.h"
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
+constexpr int INSIDE = 1; 
 // Global variable initialization 
 int ewokCounter = 0; 
 int globalClawStateTracker = 0; 
@@ -244,7 +245,7 @@ void pidMenu() {
     oled.print("gain: ", 0, 40); 
     oled.print("Speed: ", 0, 50); 
 
-    delay(150); // Debouncing delay 
+    delay(125); // Debouncing delay 
 
     if (digitalRead(menuPlus)) {
         if (optionState >= 4)  {
@@ -306,9 +307,6 @@ void pidMenu() {
     }
 }
 
-int erd; 
-int dbd; 
-int dod; 
 void bridgeMenu() { 
     int potVal = analogRead(menuPot); 
 
@@ -319,7 +317,7 @@ void bridgeMenu() {
     oled.print("Over time[ms]: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
-    delay(150); // Debouncing delay 
+    delay(125); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
         if (optionState >= 3) { 
@@ -356,26 +354,60 @@ void bridgeMenu() {
                 motorControl.updateEdgeThreshold(edgeThreshold); 
                 break; 
             case 1: 
-                erd = potVal; 
-                writeToEEPROM(MenuItems::edgeReverseDistance, erd); 
-                motorControl.edgeReverseDistance = erd; 
+                motorControl.edgeReverseDistance = potVal; 
+                writeToEEPROM(MenuItems::edgeReverseDistance, motorControl.edgeReverseDistance); 
                 break; 
             case 2: 
-                dbd = potVal; 
-                writeToEEPROM(MenuItems::dropBridgeDistance, dbd); 
-                motorControl.dropBridgeDistance = dbd; 
+                motorControl.dropBridgeDistance = potVal; 
+                writeToEEPROM(MenuItems::dropBridgeDistance, motorControl.dropBridgeDistance);
                 break; 
             case 3: 
-                dod = potVal; 
-                writeToEEPROM(MenuItems::driveOverDistance, dod); 
-                motorControl.driveOverDistance = dod; 
-                break; 
+                motorControl.driveOverDistance = potVal; 
+                writeToEEPROM(MenuItems::driveOverDistance, motorControl.driveOverDistance);                break; 
             default:
                 break; 
         }
     }
     else {
          oled.print("View", RIGHT, 0); 
+    }
+}
+
+void postTrooperMenu() { 
+    int potVal = analogRead(menuPot); 
+
+    oled.print("Post Stormtrooper Menu", 0, 0); 
+    oled.print("First left time", 0, 10);
+    oled.print("<--", 45, (optionState+1)*10); 
+
+    delay(125); 
+
+    if (digitalRead(menuPlus)) { 
+        if (optionState >= 1) { 
+            optionState = 0; 
+        }
+        else { 
+            optionState++; 
+        }
+    }
+
+    if (digitalRead(menuMinus)) {toggle = !toggle;}
+
+    // Print current values
+    oled.printNumI(); 
+
+    if (toggle) { 
+        oled.print("Edit", RIGHT, 0); 
+
+        switch (optionState) { 
+            case 0: 
+                break; 
+        default: 
+            break; 
+        }
+    }
+    else { 
+        oled.print("View", RIGHT, 0); 
     }
 }
 
@@ -414,7 +446,7 @@ void loop() {
             
             // reset global values 
             ewokCounter = 0; 
-            globalClawStateTracker = 0; rightClaw.reset(); leftClaw.reset(); rightArm.lower(); rightArm.open(false); leftArm.raise(); leftArm.close(); 
+            globalClawStateTracker = 10; rightClaw.reset(); rightArm.lower(); rightArm.open(!INSIDE); 
             edgeCounters = 0; 
             leftWheelCounter = 0; 
             rightWheelCounter = 0; 
@@ -444,9 +476,11 @@ void loop() {
         oled.update(); 
         motorControl.poll(); 
         rightClaw.poll(); 
-        // leftClaw.poll(); 
+        leftClaw.poll(); 
 
         if (globalClawStateTracker == 0) {
+            rightArm.lower(); leftArm.lower(); 
+            rightArm.open(!INSIDE); leftArm.open(!INSIDE); 
             rightClaw.stateOverride(0);
             leftClaw.stateOverride(0);  
         }
@@ -467,6 +501,11 @@ void loop() {
             // left down, right up 
             leftClaw.stateOverride(11); 
             rightClaw.stateOverride(10); 
+        }
+        else if (globalClawStateTracker == 5) { 
+            // right down left up 
+            leftClaw.stateOverride(10); 
+            rightClaw.stateOverride(11); 
         }
         globalClawStateTracker = 99; 
     }
