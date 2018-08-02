@@ -22,6 +22,10 @@ enum MenuItems {
     edgeReverseDistance, 
     dropBridgeDistance, 
     driveOverDistance, 
+    s3Tilt, 
+    s3Reverse, 
+    s3Drop, 
+    s3Pullback, 
 };
 
 // Menu pins 
@@ -227,11 +231,16 @@ void initializeFromEEPROM() {
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
     if (defaultSpeed == -1) {defaultSpeed = 190; motorControl.updateDefaultSpeed(defaultSpeed);}
+
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 250;}
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1000;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
+
+    if (motorControl.s3TiltLeftTime == -1) { motorControl.s3TiltLeftTime = 100;}
+    if (motorControl.s3ReverseTime == -1) { motorControl.s3ReverseTime = 250;}
+    if (motorControl.s3LeftPullBackTime == -1) {motorControl.s3LeftPullBackTime = 100;}
 }
 
 int optionState = 0; 
@@ -338,11 +347,6 @@ void bridgeMenu() {
     oled.printNumI(motorControl.edgeReverseDistance, RIGHT, 20); 
     oled.printNumI(motorControl.dropBridgeDistance, RIGHT, 30); 
     oled.printNumI(motorControl.driveOverDistance, RIGHT, 40); 
-
-    // // Display count --> distance conversion 
-    // oled.printNumI(motorControl.edgeReverseDistance * wheelDiameter * 3.14159265, 100, 20); 
-    // oled.printNumI(motorControl.dropBridgeDistance * wheelDiameter * 3.14159265, 100, 30); 
-    // oled.printNumI(motorControl.driveOverDistance * wheelDiameter * 3.14159265, 100, 40);
     
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -377,7 +381,10 @@ void postTrooperMenu() {
     int potVal = analogRead(menuPot); 
 
     oled.print("Post Stormtrooper Menu", 0, 0); 
-    oled.print("First left time", 0, 10);
+    oled.print("Tilt left: ", 0, 10);
+    oled.print("Reverse: ", 0, 20); 
+    oled.print("Drop ewok: ", 0, 30); 
+    oled.print("Left pull back: ", 0, 40); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(125); 
@@ -391,16 +398,35 @@ void postTrooperMenu() {
         }
     }
 
+    // edit-view toggle
     if (digitalRead(menuMinus)) {toggle = !toggle;}
 
     // Print current values
-    oled.printNumI(); 
+    oled.printNumI(motorControl.s3TiltLeftTime, RIGHT, 10); 
+    oled.printNumI(motorControl.s3ReverseTime, RIGHT, 20);
+    oled.printNumI(motorControl.dropEwokTime, RIGHT, 30); 
+    oled.printNumI(motorControl.s3LeftPullBackTime, RIGHT, 40); 
+
 
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
 
         switch (optionState) { 
             case 0: 
+                motorControl.s3TiltLeftTime = potVal; 
+                writeToEEPROM(MenuItems::s3Tilt, motorControl.s3TiltLeftTime); 
+                break; 
+            case 1: 
+                motorControl.s3ReverseTime = potVal; 
+                writeToEEPROM(MenuItems::s3Reverse, motorControl.s3ReverseTime); 
+                break; 
+            case 2: 
+                motorControl.dropEwokTime = potVal; 
+                writeToEEPROM(MenuItems::s3Drop, motorControl.dropEwokTime); 
+                break; 
+            case 3: 
+                motorControl.s3LeftPullBackTime = potVal; 
+                writeToEEPROM(MenuItems::s3Pullback, motorControl.s3LeftPullBackTime); 
                 break; 
         default: 
             break; 
@@ -412,7 +438,7 @@ void postTrooperMenu() {
 }
 
 bool initialize = true; 
-bool switchMenus = false; 
+int switchMenus = 0; 
 bool initMotors = true; 
 void loop() { 
     start = digitalRead(startBtn); 
@@ -421,14 +447,25 @@ void loop() {
             initializeFromEEPROM(); 
             initialize = false;
         }
-        if (digitalRead(menuToggle)) {switchMenus = !switchMenus; optionState = 0;}
+        if (digitalRead(menuToggle)) {
+            if (switchMenus == 2) {
+                switchMenus = 0;
+            }
+            else { 
+                switchMenus++;
+            }
+            optionState = 0;
+        }
         oled.clrScr(); 
         
-        if (switchMenus) { 
+        if (switchMenus == 0) { 
             pidMenu(); 
         }
-        else { 
+        else if (switchMenus == 1) { 
             bridgeMenu();   
+        }
+        else if (switchMenus == 2) { 
+            postTrooperMenu(); 
         }
 
         oled.update();  

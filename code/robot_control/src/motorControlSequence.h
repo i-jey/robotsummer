@@ -69,6 +69,12 @@ class MotorControl {
         int edgeReverseDistance = 0; 
         int dropBridgeDistance = 0; 
         int driveOverDistance = 0; 
+
+        // Drop ewok sequence 
+        int s3TiltLeftTime = 100; 
+        int s3ReverseTime = 250; 
+        int dropEwokTime = 1000; 
+        int s3LeftPullBackTime = 250; 
 };
 
 #endif

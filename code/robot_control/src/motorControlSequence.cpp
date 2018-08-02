@@ -97,8 +97,9 @@ void MotorControl::specialStateChecker() {
     if (ewokCounter == 3 && afterStormTroopers) { 
         globalClawStateTracker = 3; // Bring both claws back up and hold
         state = 20; 
+        delay = millis() + s3TiltLeftTime;
         afterStormTroopers = false; 
-        delay = millis() + 200; 
+        delay = millis() + s3TiltLeftTime; 
     }
 }
 
@@ -266,14 +267,16 @@ void MotorControl::poll() {
         // THIRD EWOK SEQUENCE 
         case 20: 
             // Rotate left, pivot on left wheel
+            leftMotor.write(0); 
+            rightMotor.write(defaultSpeed - 30); 
             if (millis() > delay) { 
                 state++; 
             }
             break; 
         case 21: 
             // Drive forward until right edge is off 
-            leftMotor.write(defaultSpeed-30); 
-            rightMotor.write(defaultSpeed-30); 
+            leftMotor.write(defaultSpeed - 30); 
+            rightMotor.write(defaultSpeed - 30); 
 
             if (bridge.detectRightEdge()) { 
                 state++; 
@@ -286,7 +289,7 @@ void MotorControl::poll() {
 
             if (bridge.detectLeftEdge()) { 
                 state++; 
-                delay = millis() + 250; 
+                delay = millis() + s3ReverseTime; 
             }
             break; 
         case 23: 
@@ -296,7 +299,7 @@ void MotorControl::poll() {
 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 1000;
+                delay = millis() + dropEwokTime;
             }
             break; 
         case 24: 
@@ -314,7 +317,7 @@ void MotorControl::poll() {
             globalClawStateTracker = 3; 
 
             if (bridge.detectLeftEdge()) { 
-
+                state++; 
             }
             break; 
         case 26:   
@@ -331,7 +334,7 @@ void MotorControl::poll() {
 
             if (bridge.detectLeftEdge()) { 
                 state++; 
-                delay = millis() + 100;
+                delay = millis() + s3LeftPullBackTime;
             }
             break; 
         case 28:
@@ -341,7 +344,7 @@ void MotorControl::poll() {
 
             if (millis() > delay) { 
                 state++;
-                delay = millis() + 1000;
+                delay = millis() + dropEwokTime;
             }
             break; 
         case 29: 
@@ -375,7 +378,6 @@ void MotorControl::poll() {
             // Stop motors until delay is up
             leftMotor.write(0); 
             rightMotor.write(0);  
-            // globalClawStateTracker = 1; 
             break; 
         default: 
             break; 
