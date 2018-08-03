@@ -3,12 +3,16 @@
 
 class Basket { 
     private:
-        int basketPin; 
+        Servo basketServo; 
+        int servoPin;
+        int basketLim;  
     public: 
         Basket(); 
-        Basket(int basketPin); 
+        Basket(int servoPin, int basketLim); 
         void raiseBasket(); 
         void lowerBasket(); 
+        void holdBasket(); 
+        bool readBasketSwitch(); 
 }; 
 
 #endif

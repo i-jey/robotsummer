@@ -22,6 +22,7 @@ class Arm {
         void raise(); 
         void verticalRaise(); 
         void lower(); 
+        void customAngle(int angle); 
 }; 
 
 #endif 

@@ -44,3 +44,7 @@ void Arm::verticalRaise() {
 void Arm::lower() { 
     armServo.write(lowerAngle); 
 }
+
+void Arm::customAngle(int angle) { 
+    armServo.write(angle); 
+}

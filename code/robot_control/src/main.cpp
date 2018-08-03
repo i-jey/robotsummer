@@ -26,6 +26,7 @@ enum MenuItems {
     s3Reverse, 
     s3Drop, 
     s3Pullback, 
+    bridgeBias, 
 };
 
 // Menu pins 
@@ -78,7 +79,8 @@ constexpr int irPin1k = PB13;
 constexpr int irPin10k = PB12;  
 
 // Basket pin 
-constexpr int basketPin = PA8; 
+constexpr int basketServo = PA8; 
+constexpr int basketLim = PC13; 
 
 // Bridge 
 int edgeThreshold = 500; 
@@ -95,7 +97,7 @@ int qrdThreshold = 0;
 int defaultSpeed = 120; 
 
 IRReader ir = IRReader(irPin1k, irPin10k); 
-Basket basket = Basket(basketPin);
+Basket basket = Basket(basketServo, basketLim);
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 
 // Claw 
@@ -105,6 +107,7 @@ int leftClawOpenAngleInside = 92;
 int leftClawLowerAngle = 25; 
 int leftClawRaiseAngle = 160; 
 int leftVertical = 136; 
+int leftDab = 90; 
 
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 110; 
@@ -112,6 +115,7 @@ int rightClawOpenAngleInside = 127;
 int rightClawLowerAngle = 157; 
 int rightClawRaiseAngle = 25; 
 int rightVertical = 44; 
+int rightDab = 25; 
 
 int closeTime = 250; 
 int raiseTime = 1000; 
@@ -187,6 +191,9 @@ void setup() {
     pinMode(irPin1k, INPUT_PULLDOWN); 
     pinMode(irPin10k, INPUT_PULLDOWN); 
 
+    // Basket 
+    pinMode(basketLim, INPUT_PULLDOWN); 
+
     // Menu dials and OLED
     pinMode(oled_scl, INPUT_PULLUP); 
     pinMode(oled_sda, INPUT_PULLUP); 
@@ -231,15 +238,16 @@ void initializeFromEEPROM() {
     if (p == -1) {p = 4; motorControl.updateP(p);}
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 180; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (defaultSpeed == -1) {defaultSpeed = 160; motorControl.updateDefaultSpeed(defaultSpeed);}
 
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 250;}
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1000;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
+    if (motorControl.bias == -1) {motorControl.bias = 20;}
 
-    if (motorControl.s3TiltLeftTime == -1) { motorControl.s3TiltLeftTime = 100;}
+    if (motorControl.s3TiltLeftTime == -1) { motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) { motorControl.s3ReverseTime = 250;}
     if (motorControl.s3LeftPullBackTime == -1) {motorControl.s3LeftPullBackTime = 100;}
 }
@@ -325,12 +333,13 @@ void bridgeMenu() {
     oled.print("Reverse1 time[ms]: ", 0, 20); 
     oled.print("Reverse2 time[ms]: ", 0, 30); 
     oled.print("Over time[ms]: ", 0, 40); 
+    oled.print("Bias: ", 0, 50); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(125); // Debouncing delay 
 
     if (digitalRead(menuPlus)) { 
-        if (optionState >= 3) { 
+        if (optionState >= 4) { 
             optionState = 0; 
         }
         else { 
@@ -348,7 +357,8 @@ void bridgeMenu() {
     oled.printNumI(motorControl.edgeReverseDistance, RIGHT, 20); 
     oled.printNumI(motorControl.dropBridgeDistance, RIGHT, 30); 
     oled.printNumI(motorControl.driveOverDistance, RIGHT, 40); 
-    
+    oled.printNumI(motorControl.bias, RIGHT, 50);
+
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
     
@@ -368,7 +378,12 @@ void bridgeMenu() {
                 break; 
             case 3: 
                 motorControl.driveOverDistance = potVal; 
-                writeToEEPROM(MenuItems::driveOverDistance, motorControl.driveOverDistance);                break; 
+                writeToEEPROM(MenuItems::driveOverDistance, motorControl.driveOverDistance);                
+                break;
+            case 4: 
+                motorControl.bias = potVal; 
+                writeToEEPROM(MenuItems::bridgeBias, motorControl.bias); 
+                break; 
             default:
                 break; 
         }
@@ -442,6 +457,7 @@ bool initialize = true;
 int switchMenus = 0; 
 bool initMotors = true; 
 void loop() { 
+    Serial.println(digitalRead(PC13)); 
     start = digitalRead(startBtn); 
     if (!start) { 
         // Both claws up 
@@ -505,7 +521,7 @@ void loop() {
             motorControl.stateOverride(2, 0); // state 0 = continuous forward drive
             leftClaw.stateOverride(10); 
         }
-        
+
         oled.clrScr();
         oled.print("PL2 W0RK", 40, 0); 
         oled.print("Current state: ", 0, 20);
@@ -549,6 +565,16 @@ void loop() {
             // left claw start polling
             leftClaw.stateOverride(0); 
         }
+        else if (globalClawStateTracker == 6) { 
+            // both down 
+            leftClaw.stateOverride(11); 
+            rightClaw.stateOverride(11); 
+        }
+        else if (globalClawStateTracker == 7) { 
+            leftArm.close(); leftArm.customAngle(leftDab); 
+            rightArm.close(); rightArm.customAngle(rightDab); 
+        }
+
         globalClawStateTracker = 99; 
     }
 }

@@ -42,6 +42,8 @@ class MotorControl {
         void pid(); 
         void rotateLeft(); 
         void rotateRight(); 
+        void rotateLeftJolt(); 
+        void rotateRightJolt(); 
 
     public: 
         MotorControl();
@@ -75,6 +77,7 @@ class MotorControl {
         int s3ReverseTime = 250; 
         int dropEwokTime = 1000; 
         int s3LeftPullBackTime = 250; 
+        int bias = 20; 
 };
 
 #endif
