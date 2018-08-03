@@ -29,6 +29,7 @@ void ClawSequence::poll() {
     if (millis() < delay) { 
         return; 
     }
+
     switch(state) { 
         case 0: 
             if (arm.ewokDetected()) { 
@@ -71,7 +72,7 @@ void ClawSequence::poll() {
             break; 
         case 10:
             arm.close(); 
-            arm.raise();  
+            arm.verticalRaise();  
             break; 
         case 11: 
             arm.open(!INSIDE); 
