@@ -1,5 +1,4 @@
 #include "includes.h"
-#include "tapeFollow.h"
 
 TapeFollow::TapeFollow(){}; 
 TapeFollow::TapeFollow(int leftQRDPin, int rightQRDPin) { 

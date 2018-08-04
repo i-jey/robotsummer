@@ -2,12 +2,15 @@
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
 constexpr int INSIDE = 1; 
+
 // Global variable initialization 
 int ewokCounter = 0; 
 int globalClawStateTracker = 0; 
 int edgeCounters = 0; 
 volatile int leftWheelCounter = 0; 
 volatile int rightWheelCounter = 0; 
+int rightClawState = 0; 
+int leftClawState = 0; 
 
 // EEPROM / menu reference 
 enum MenuItems {
@@ -79,14 +82,13 @@ constexpr int irPin1k = PB13;
 constexpr int irPin10k = PB12;  
 
 // Basket pin 
-constexpr int basketServo = PA8; 
+constexpr int basketServo = PA9; 
 constexpr int basketLim = PC13; 
 
 // Bridge 
 int edgeThreshold = 500; 
 int bridge1LowerAngle = 40; 
 int bridge1UpperAngle = 130; 
-Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
 
 // PID constants
 int p = 0;
@@ -96,26 +98,22 @@ int gain = 0;
 int qrdThreshold = 0; 
 int defaultSpeed = 120; 
 
-IRReader ir = IRReader(irPin1k, irPin10k); 
-Basket basket = Basket(basketServo, basketLim);
-TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
-
 // Claw 
 int leftClawCloseAngle = 177; 
 int leftClawOpenAngle = 60; 
 int leftClawOpenAngleInside = 92; 
-int leftClawLowerAngle = 25; 
-int leftClawRaiseAngle = 160; 
+int leftClawLowerAngle = 20; 
+int leftClawRaiseAngle = 170; 
 int leftVertical = 136; 
 int leftDab = 90; 
 
 int rightClawCloseAngle = 0; 
-int rightClawOpenAngle = 110; 
-int rightClawOpenAngleInside = 127; 
+int rightClawOpenAngle = 105; 
+int rightClawOpenAngleInside = 95; 
 int rightClawLowerAngle = 157; 
-int rightClawRaiseAngle = 25; 
+int rightClawRaiseAngle = 20; 
 int rightVertical = 44; 
-int rightDab = 25; 
+int rightDab = 20; 
 
 int closeTime = 250; 
 int raiseTime = 1000; 
@@ -124,11 +122,35 @@ int closeTime2 = 500;
 int lowerTime = 1000; 
 int resetTime = 1000; 
 
+
+int globalMotorStateTracker = 0; 
+
+// Menu bools 
+bool start; 
+bool toggle = false; 
+
+// Arm rightArm; 
+// ClawSequence rightClaw; 
+// Arm leftArm; 
+// ClawSequence leftClaw; 
+// Bridge bridge; 
+// IRReader ir; 
+// Basket basket; 
+// TapeFollow pidControl; 
+// Motor rightMotor; 
+// Motor leftMotor; 
+// MotorControl motorControl; 
+// MotorInit motorInit;
+
 // Initialize arms and claws 
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle, rightVertical); 
+Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle, rightVertical);
 ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_push_button, leftClawCloseAngle, leftClawOpenAngle, leftClawOpenAngleInside, leftClawLowerAngle, leftClawRaiseAngle, leftVertical); 
 ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
+TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
+Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle); 
+IRReader ir = IRReader(irPin1k, irPin10k); 
+Basket basket = Basket(basketServo, basketLim); 
 
 // Initialize motor
 Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2); 
@@ -136,64 +158,45 @@ Motor leftMotor = Motor(left_motor_pin1, left_motor_pin2);
 MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge, ir, basket, 
     pidControl, leftClaw, rightClaw, qrdThreshold, gain, p, i, d); 
 MotorInit motorInit = MotorInit(); 
-int globalMotorStateTracker = 0; 
 
-// Menu bools 
-bool start; 
-bool toggle = false; 
-
-unsigned long leftEncoderDebounce = 0; 
-unsigned long rightEncoderDebounce = 0; 
-
-void leftEncoderIncrement() { 
-    // Serial.println("LEFT TRIGGERED"); 
-    // if (millis() > leftEncoderDebounce) { 
-    //     leftWheelCounter++; 
-    //     leftEncoderDebounce = millis() + 10; 
-    // }
-    leftWheelCounter++; 
-}
-void rightEncoderIncrement() { 
-    // if (millis() > rightEncoderDebounce) { 
-    //     rightWheelCounter++; 
-    //     rightEncoderDebounce = millis() + 10; 
-    // }
-    rightWheelCounter++;
-}
+// Object initialization
+// void initrightArm() {rightArm = Arm(right_clamp_pin, right_arm_pin, right_push_button, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle, rightVertical);}
+void initRightClaw() {}
+void initLeftArm() {}
+void initLeftClaw() {}
+void initPID() {}
+void initBridge() {}
+void initIR() {}
+// void initBasket() {basket = Basket(basketServo, basketLim);}
+void initRightMotor() {}
+void initLeftMotor() {}
+void initMotorControl() {}
+void initMotorInit() {}
 
 void setup() {  
-    Serial.begin(9600); 
-    
-    // Encoder interrupts 
-    pinMode(encoderLeft, INPUT_PULLDOWN); 
-    pinMode(encoderRight, INPUT_PULLDOWN); 
-    attachInterrupt(encoderLeft, leftEncoderIncrement, RISING); 
-    attachInterrupt(encoderRight, rightEncoderIncrement, RISING); 
+    // Serial.begin(9600);  
 
-    // Initialize motor pins 
+    // // Initialize motor pins 
     motorInit.init(); 
 
-    // Initialize qrds 
+    // // Initialize qrds 
     pinMode(left_edge_QRD, INPUT); 
     pinMode(right_edge_QRD, INPUT); 
     pinMode(left_pid_QRD, INPUT); 
     pinMode(right_pid_QRD, INPUT); 
 
-    // Initialize claw buttons
+    // // Initialize claw buttons
     pinMode(right_push_button, INPUT_PULLDOWN); 
     pinMode(left_push_button, INPUT_PULLDOWN); 
-    rightArm.open(false); 
-    leftArm.open(false); 
-    rightArm.lower(); 
-    leftArm.lower(); 
 
-    // IR 
+    // // IR 
     pinMode(irPin1k, INPUT_PULLDOWN); 
     pinMode(irPin10k, INPUT_PULLDOWN); 
 
-    // Basket 
+    // // Basket 
     pinMode(basketLim, INPUT_PULLDOWN); 
-
+    pinMode(basketServo, OUTPUT); 
+    
     // Menu dials and OLED
     pinMode(oled_scl, INPUT_PULLUP); 
     pinMode(oled_sda, INPUT_PULLUP); 
@@ -238,14 +241,14 @@ void initializeFromEEPROM() {
     if (p == -1) {p = 4; motorControl.updateP(p);}
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 160; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (defaultSpeed == -1) {defaultSpeed = 170; motorControl.updateDefaultSpeed(defaultSpeed);}
 
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 250;}
-    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1000;}
+    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1200;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.bias == -1) {motorControl.bias = 20;}
+    if (motorControl.bias == -1) {motorControl.bias = 10;}
 
     if (motorControl.s3TiltLeftTime == -1) { motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) { motorControl.s3ReverseTime = 250;}
@@ -457,13 +460,13 @@ bool initialize = true;
 int switchMenus = 0; 
 bool initMotors = true; 
 void loop() { 
-    Serial.println(digitalRead(PC13)); 
+    basket.raiseBasket(); 
     start = digitalRead(startBtn); 
     if (!start) { 
         // Both claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
-
+        
         if (initialize) {
             initializeFromEEPROM(); 
             initialize = false;
@@ -495,7 +498,7 @@ void loop() {
     else {
         if (initMotors) {
             initMotors = false; 
-
+            
             motorInit.init();
 
             oled.clrScr(); 
@@ -504,7 +507,7 @@ void loop() {
             
             // reset global values 
             ewokCounter = 0; 
-            globalClawStateTracker = 2; rightClaw.reset(); rightArm.lower(); rightArm.open(!INSIDE); 
+            globalClawStateTracker = 2;
             edgeCounters = 0; 
             leftWheelCounter = 0; 
             rightWheelCounter = 0; 
@@ -513,23 +516,26 @@ void loop() {
             // grace period before it starts to go 
             // oled.print("3", 60, 30); oled.update(); 
             // delay(1000); 
-            oled.print("2", 60, 30); oled.update(); 
-            delay(1000); 
-            oled.print("1", 60, 30); oled.update(); 
-            delay(1000); 
 
             motorControl.stateOverride(2, 0); // state 0 = continuous forward drive
             leftClaw.stateOverride(10); 
+            rightArm.lower(); rightArm.open(!INSIDE); 
+
+            oled.print("2", 60, 30); oled.update(); 
+            delay(1000); 
+
+            oled.print("1", 60, 30); oled.update(); 
+            delay(1000); 
         }
 
         oled.clrScr();
         oled.print("PL2 W0RK", 40, 0); 
         oled.print("Current state: ", 0, 20);
         oled.printNumI(globalMotorStateTracker, RIGHT, 20);  
-        oled.print("Claw state: ", 0, 30);
-        oled.printNumI(globalClawStateTracker, RIGHT, 30);  
-        oled.print("Ewok counter: ", 0, 40);
-        oled.printNumI(ewokCounter, RIGHT, 40); 
+        oled.print("Ewok counter: ", 0, 30);
+        oled.printNumI(ewokCounter, RIGHT, 30); 
+        oled.printNumI(leftClaw.getState(), 50, 40); 
+        oled.printNumI(rightClaw.getState(), 80, 40); 
         oled.printNumI(digitalRead(irPin1k), 50, 50); 
         oled.printNumI(digitalRead(irPin10k), 80, 50); 
         oled.update(); 

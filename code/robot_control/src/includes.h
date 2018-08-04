@@ -6,6 +6,13 @@ extern int ewokCounter;
 extern int edgeCounters; 
 extern int globalMotorStateTracker; 
 extern int globalClawStateTracker; 
+extern bool raiseBasket; 
+extern bool holdBasket; 
+extern bool lowerBasket; 
+
+// Claw 
+extern int rightClawState; 
+extern int leftClawState; 
 
 // Encoder global variables
 constexpr int countsPerRotation = 48; 

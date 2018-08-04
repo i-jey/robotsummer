@@ -33,15 +33,15 @@ void ClawSequence::poll() {
     switch(state) { 
         case 0: 
             if (arm.ewokDetected()) { 
+                ewokCounter++; 
                 arm.close(); 
                 state++; 
-                ewokCounter++; 
                 delay = millis() + closeTime; 
             }
             else { 
                 arm.open(!INSIDE); 
                 // Only read every 50ms, avoids false button reads
-                delay = millis() + 50; 
+                delay = millis() + 100; 
             }
             break; 
         case 1: 
@@ -51,14 +51,13 @@ void ClawSequence::poll() {
             break; 
         case 2: 
             arm.open(INSIDE); 
-            state++; 
+            state = 4; 
             delay = millis() + openTime; 
             break; 
         case 3: 
             arm.close(); 
             state++; 
             delay = millis() + closeTime2; 
-
             break; 
         case 4: 
             arm.lower(); 
@@ -90,4 +89,8 @@ void ClawSequence::stateOverride(int specialState) {
     *   10 : Raise arm and keep arm raised while in this state
     */
     state = specialState;
+}
+
+int ClawSequence::getState() { 
+    return state; 
 }

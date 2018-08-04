@@ -8,6 +8,7 @@ bool afterStormTroopers = true;
 bool detected1k = false; 
 bool irGo = false; 
 bool clawStartWait = true; 
+bool clawBeforeGate = true; 
 bool ohBabyADouble = false; 
 int reducedSpeed;
 int nextState = 0; 
@@ -48,6 +49,8 @@ void MotorControl::reset() {
     clawStartWait = true; 
     ohBabyADouble = false; 
     afterStormTroopers = true; 
+    clawBeforeGate = true;
+    edgeCounters = 0; 
 }
 
 void MotorControl::specialStateChecker() {
@@ -64,7 +67,6 @@ void MotorControl::specialStateChecker() {
             // Switch to first bridge sequence
             state = 10; 
             edgeCounters++; 
-            globalClawStateTracker = 2; // Lift left arm
         }
 
         if (ohBabyADouble) { 
@@ -100,12 +102,17 @@ void MotorControl::specialStateChecker() {
     //         irGo = true; 
     //     }
     // }
-
+    if (ewokCounter == 2 && clawBeforeGate) { 
+        specialStateDelay = millis() + 1250; 
+        clawBeforeGate = false;  
+    }
     if (ewokCounter == 2 && !throughGate) { 
         // Freeze, both hands up! oh god please don't shoot please im too yung
-        globalClawStateTracker = 3; 
-        throughGate = true; 
-        specialStateDelay = millis() + 3750; // delay to get from gate to after storm troopers before bringing left claw down
+        if (millis() > specialStateDelay) { 
+            globalClawStateTracker = 3; 
+            throughGate = true;
+            specialStateDelay = millis() + 4250; // delay to get from gate to after storm troopers before bringing left claw down 
+        }
 }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers) { 
         // We've passed Stormy Daniels, bring left claw down (but wait before polling to prevent it triggering itself)
@@ -123,7 +130,7 @@ void MotorControl::specialStateChecker() {
         // globalClawStateTracker = 3;
         state = 40; 
         afterStormTroopers = false; 
-        delay = millis() + 2500;
+        delay = millis() + 2000;
     }
 }
 
@@ -225,11 +232,6 @@ void MotorControl::poll() {
             leftMotor.write(-defaultSpeed); 
             rightMotor.write(-defaultSpeed); 
 
-            // if (leftWheelCounter > edgeReverseDistance && rightWheelCounter > edgeReverseDistance) { 
-            //     state++; 
-            //     leftWheelCounter = 0; 
-            //     rightWheelCounter = 0; 
-            // }
             if (millis() > delay) { 
                 state++;  
                 angle = bridge.firstBridgeUpperAngle;
@@ -275,18 +277,22 @@ void MotorControl::poll() {
             break; 
         case 16: 
             // Drive over bridge
-            leftMotor.write(150 + 20); 
-            rightMotor.write(150 - 20); 
+            leftMotor.write(150 + bias); 
+            rightMotor.write(150 - bias); 
 
             if (millis() > delay && (pidControl.leftOnTape() || pidControl.rightOnTape())) { 
+                state++; 
+                delay = millis() + 200; 
+            }
+
+            break; 
+        case 17: 
+            // Temporary pid to find tape
+            pid();
+            if (millis() > delay) { 
                 state = 2; 
                 firstBridgeSequenceDone = true; 
             }
-        
-            // if (pidControl.leftOnTape() || pidControl.rightOnTape() ) { 
-            //     state = 2; 
-            // }
-
             break; 
         // THIRD EWOK SEQUENCE 
         case 20:   
@@ -496,15 +502,20 @@ void MotorControl::poll() {
 
             if (!basket.readBasketSwitch()) { 
                 state++; 
+                delay = millis() + 2000; 
             }
             break; 
         case 45: 
             basket.lowerBasket(); 
-            // globalClawStateTracker = 7; 
+            if (millis() > delay) { 
+                state++; 
+                globalClawStateTracker = 7; 
+            }
             break; 
         case 100: 
             leftMotor.write(0); 
             rightMotor.write(0);  
+            basket.holdBasket(); 
             break; 
         case 101: 
             // Wait for a set time and then advanced to a specifed state 
@@ -614,7 +625,8 @@ void MotorControl::continuousReverse() {
 void MotorControl::pid() { 
     // Bridge done, 10k signal, move with a reduced speed 
     if (firstBridgeSequenceDone && irGo && beforeStormTroopers) { 
-        pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, reducedSpeed);
+
+        pidControl.followTape(qrdThreshold, gain-1, pVal, iVal, dVal, reducedSpeed);
     }
     else { 
         pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed);

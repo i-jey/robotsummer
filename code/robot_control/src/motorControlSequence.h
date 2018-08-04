@@ -43,7 +43,7 @@ class MotorControl {
         void rotateLeft(); 
         void rotateRight(); 
         void rotateLeftJolt(); 
-        void rotateRightJolt(); 
+        void rotateRightJolt();
 
     public: 
         MotorControl();

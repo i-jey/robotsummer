@@ -20,6 +20,7 @@ class ClawSequence {
         void reset(); 
         void poll(); 
         void stateOverride(int specialState); 
+        int getState(); 
 };
 
 #endif
