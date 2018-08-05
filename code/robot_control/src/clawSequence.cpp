@@ -1,9 +1,9 @@
 #include "includes.h"
 #define INSIDE 1
 
-ClawSequence::ClawSequence(){};
-ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime) { 
-    this->arm = arm; 
+ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime) 
+: arm(arm)
+{ 
     this->closeTime = closeTime;
     this->raiseTime = raiseTime;
     this->openTime = openTime;
@@ -12,6 +12,10 @@ ClawSequence::ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime,
     this->resetTime = resetTime; 
 
     state = 0; 
+}
+
+void ClawSequence::begin() { 
+    arm.begin();
 }
 
 void ClawSequence::reset() { 

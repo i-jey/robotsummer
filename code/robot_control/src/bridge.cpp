@@ -1,15 +1,30 @@
 #include "includes.h"
 
 Bridge::Bridge(){}; // Default constructor otherwise C++ whines
-Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle) { 
-    bridgeServo1.attach(bridgePin1); 
-    bridgeServo2.attach(bridgePin2); 
+Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle, int secondBridgeLowerAngle, int secondBridgeUpperAngle) { 
+    this->bridgePin1 = bridgePin1; 
+    this->bridgePin2 = bridgePin2; 
     this->QRDLeft = QRDLeftPin; 
     this->QRDRight = QRDRightPin;
+
     this->edgeThreshold = qrdThreshold;
     this->firstBridgeLowerAngle = firstBridgeLowerAngle; 
     this->firstBridgeUpperAngle = firstBridgeUpperAngle;
-    bridgeServo1.write(firstBridgeUpperAngle);
+    this->secondBridgeLowerAngle = secondBridgeLowerAngle; 
+    this->secondBridgeUpperAngle = secondBridgeUpperAngle; 
+}
+
+void Bridge::begin() { 
+    bridgeServo1.attach(bridgePin1); 
+    bridgeServo2.attach(bridgePin2); 
+    // pinMode(bridgePin1, OUTPUT);
+    // pinMode(bridgePin2, OUTPUT); 
+    pinMode(QRDLeft, INPUT_PULLDOWN); 
+    pinMode(QRDRight, INPUT_PULLDOWN); 
+
+    // Raise both bridges 
+    bridgeServo1.write(firstBridgeUpperAngle); 
+    bridgeServo2.write(secondBridgeUpperAngle); 
 }
 
 bool Bridge::detectLeftEdge() { 

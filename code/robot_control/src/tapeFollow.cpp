@@ -6,17 +6,16 @@ TapeFollow::TapeFollow(int leftQRDPin, int rightQRDPin) {
     this->rightQRDPin = rightQRDPin; 
 }
 
+void TapeFollow::begin() { 
+    pinMode(leftQRDPin, INPUT_PULLDOWN); 
+    pinMode(rightQRDPin, INPUT_PULLDOWN); 
+}
+
 void TapeFollow::followTape(int qrdThreshold, int gain, int p, int i, int d, int defaultMotorSpeed) { 
     this->defaultMotorSpeed = defaultMotorSpeed;
     leftQRDState = analogRead(leftQRDPin) > qrdThreshold; 
     rightQRDState = analogRead(rightQRDPin) > qrdThreshold;
     this->qrdThreshold = qrdThreshold;
-
-    // Serial.print("L: "); Serial.println(analogRead(leftQRDPin)); 
-    // Serial.print("R: "); Serial.println(analogRead(rightQRDPin));
-    // Serial.print("Threshold: "); Serial.println(qrdThreshold); 
-    // Serial.print("LEFT: "); Serial.println(leftQRDState); 
-    // Serial.print("RIGHT: "); Serial.println(rightQRDState); 
     
     // Error cases 
     // Both QRDs on tape

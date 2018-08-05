@@ -1,10 +1,10 @@
 #include "includes.h"
 
 Arm::Arm(){}; // default constructor otherwise C++ whines
-Arm::Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle) { 
-    clampServo.attach(clampPin); 
-    armServo.attach(armPin);  
-    this->pushButton = pushButton; 
+Arm::Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle) { 
+    this->clampPin = clampPin; 
+    this->armPin = armPin; 
+    this->triggerPin = triggerPin; 
     this->closeAngle = closeAngle; 
     this->openAngle = openAngle; 
     this->openAngleInside = openAngleInside;
@@ -13,8 +13,15 @@ Arm::Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle
     this->verticalAngle = verticalAngle; 
 }
 
+void Arm::begin() { 
+    clampServo.attach(clampPin); 
+    armServo.attach(armPin); 
+    
+    pinMode(triggerPin, INPUT_PULLDOWN); 
+}
+
 bool Arm::ewokDetected() { 
-    if (!digitalRead(pushButton)) { 
+    if (!digitalRead(triggerPin)) { 
         return true; 
     }
     return false; 

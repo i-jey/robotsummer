@@ -8,7 +8,8 @@ class Motor {
 
     public: 
         Motor();
-        Motor(int motorPin1, int motorPin2); 
+        Motor(int motorPin1, int motorPin2);
+        void begin(); 
         void forward(int speed); 
         void reverse(int speed); 
         void write(int speed); 

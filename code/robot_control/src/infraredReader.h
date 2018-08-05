@@ -8,6 +8,7 @@ class IRReader {
     public: 
         IRReader(); 
         IRReader(int pin1k, int pin10k); 
+        void begin(); 
         bool read1k(); 
         bool read10k(); 
 }; 

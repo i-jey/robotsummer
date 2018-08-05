@@ -6,9 +6,11 @@ class Basket {
         Servo basketServo; 
         int servoPin;
         int basketLim;  
+        
     public: 
         Basket(); 
         Basket(int servoPin, int basketLim); 
+        void begin(); 
         void raiseBasket(); 
         void lowerBasket(); 
         void holdBasket(); 

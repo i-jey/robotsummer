@@ -14,18 +14,14 @@ int reducedSpeed;
 int nextState = 0; 
 unsigned long nextDelay = 0; 
 
-MotorControl::MotorControl(){};
-MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
-    Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, int qrdThreshold, int gain, int p, int i, int d) { 
+#define CLAW_POLL 0
+#define CLAW_UP 10
+#define CLAW_DOWN 11
 
-    this->leftMotor = leftMotor; 
-    this->rightMotor = rightMotor; 
-    this->bridge = bridge; 
-    this->ir = ir; 
-    this->basket = basket; 
-    this->pidControl = pidControl; 
-    this->leftClaw = leftClaw; 
-    this->rightClaw = rightClaw; 
+MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
+    Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, int qrdThreshold, int gain, int p, int i, int d) 
+: leftMotor(leftMotor), rightMotor(rightMotor), bridge(bridge), ir(ir), basket(basket), pidControl(pidControl), leftClaw(leftClaw), rightClaw(rightClaw)
+{ 
     this->qrdThreshold = qrdThreshold;  
     this->gain = gain; 
     this->pVal = p; 
@@ -33,11 +29,21 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     this->dVal = d; 
 
     // Initialize bridge angle 
-    bridge.raiseBridge1(); 
     bridge.firstBridgeLowerAngle = 40;
     bridge.firstBridgeUpperAngle = 130; 
 
     reducedSpeed = 150; 
+}
+
+void MotorControl::begin() { 
+    basket.begin(); 
+    pidControl.begin(); 
+    leftMotor.begin(); 
+    rightMotor.begin(); 
+    bridge.begin(); 
+    ir.begin(); 
+    leftClaw.begin(); 
+    rightClaw.begin(); 
 }
 
 void MotorControl::reset() { 
@@ -82,7 +88,8 @@ void MotorControl::specialStateChecker() {
             // Switch to wait state
             state = 100;  
             if (ir.read1k()) {detected1k = true;}
-            globalClawStateTracker = 2; // Lift left arm 
+            // globalClawStateTracker = 2; // Lift left arm 
+            leftClaw.stateOverride(CLAW_UP);
         }
         else if ((ir.read10k() || !ir.read1k()) && detected1k == true) { 
             if (irGo == false) { 
@@ -103,14 +110,14 @@ void MotorControl::specialStateChecker() {
     //     }
     // }
     if (ewokCounter > prevEwokCounter) { 
-        prevEwokCounter = ewokCounter; 
         nextState = state; 
         delay = millis() + 500; 
         nextDelay = 0; 
         state = 101; 
+        prevEwokCounter = ewokCounter; 
     }
     if (ewokCounter == 2 && clawBeforeGate) { 
-        specialStateDelay = millis() + 1250; 
+        specialStateDelay = millis() + 1350; 
         clawBeforeGate = false;  
     }
     if (ewokCounter == 2 && !throughGate) { 
@@ -120,20 +127,27 @@ void MotorControl::specialStateChecker() {
 
         // Freeze, both hands up! oh god please don't shoot please im too yung
         if (millis() > specialStateDelay) { 
-            globalClawStateTracker = 3; 
+            // globalClawStateTracker = 3;
+            leftClaw.stateOverride(CLAW_UP); 
+            rightClaw.stateOverride(CLAW_UP); 
+             
             throughGate = true;
             specialStateDelay = millis() + 4750; // delay to get from gate to after storm troopers before bringing left claw down 
         }
 }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
         // We've passed Stormy Daniels, bring left claw down (but wait before polling to prevent it triggering itself)
-        globalClawStateTracker = 4; 
+        // globalClawStateTracker = 4; 
+        leftClaw.stateOverride(CLAW_DOWN); 
+        rightClaw.stateOverride(CLAW_UP); 
+
         beforeStormTroopers = false; 
-        specialStateDelay = millis() + 250; 
+        specialStateDelay = millis() + 350; 
     }
     if (millis() > specialStateDelay && !beforeStormTroopers && clawStartWait) { 
         // Start left claw polling
-        globalClawStateTracker = 5; 
+        // globalClawStateTracker = 5; 
+        leftClaw.stateOverride(CLAW_POLL); 
         clawStartWait = false; 
     }
 
@@ -210,8 +224,6 @@ void MotorControl::poll() {
 
             if (bridge.detectRightEdge()) { 
                 state++; 
-                leftWheelCounter = 0; 
-                rightWheelCounter = 0;
                 delay = millis() + 1000;  
             } 
             break; 
@@ -412,16 +424,6 @@ void MotorControl::poll() {
                 nextDelay = s3LeftPullBackTime;
             }
             break; 
-        // case 30:
-        //     // Pull back left wheel
-        //     leftMotor.write(-defaultSpeed + 20); 
-        //     rightMotor.write(0); 
-
-        //     if (millis() > delay) { 
-        //         state++;
-        //         delay = millis() + dropEwokTime;
-        //     }
-        //     break; 
         case 30: 
             // Drop right ewok 
             globalClawStateTracker = 1; 
@@ -473,7 +475,10 @@ void MotorControl::poll() {
                 rotateRight();
             } 
             
-            globalClawStateTracker = 3; 
+            // globalClawStateTracker = 3; 
+            leftClaw.stateOverride(CLAW_UP); 
+            rightClaw.stateOverride(CLAW_UP); 
+
             if (bridge.detectRightEdge()) { 
                 nextState = ++state; 
                 state = 101; 
@@ -497,7 +502,9 @@ void MotorControl::poll() {
         case 43: 
             leftMotor.write(0); 
             rightMotor.write(0); 
-            globalClawStateTracker = 6; 
+            // globalClawStateTracker = 6; 
+            leftClaw.stateOverride(CLAW_DOWN); 
+            rightClaw.stateOverride(CLAW_DOWN); 
 
             if (!basket.readBasketSwitch()) { 
                 basket.raiseBasket();
@@ -512,13 +519,13 @@ void MotorControl::poll() {
 
             if (!basket.readBasketSwitch()) { 
                 state++; 
-                delay = millis() + 2000; 
+                delay = millis() + 500; 
             }
             break; 
         case 45: 
             basket.lowerBasket(); 
             if (millis() > delay) { 
-                state++; 
+                state=100; 
                 globalClawStateTracker = 7; 
             }
             break; 

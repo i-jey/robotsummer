@@ -5,14 +5,17 @@ class Bridge {
     private: 
         Servo bridgeServo1; 
         Servo bridgeServo2; 
+        int bridgePin1; 
+        int bridgePin2; 
         int QRDLeft; 
         int QRDRight; 
         int edgeThreshold;
 
     public: 
         Bridge(); 
-        Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
-                int qrdThreshold, int firstBridgeLowerAngle, int firstBridgeUpperAngle); 
+        Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, int qrdThreshold, 
+            int firstBridgeLowerAngle, int firstBridgeUpperAngle, int secondBridgeLowerAngle, int secondBridgeUpperAngle); 
+        void begin();
         bool detectLeftEdge(); 
         bool detectRightEdge(); 
         void lowerBridge1(int angle); 

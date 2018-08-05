@@ -8,15 +8,15 @@ class MotorControl {
         int state; 
 
         // Modules to keep track of / control
-        Motor leftMotor; 
-        Motor rightMotor; 
-        TapeFollow pidControl; 
-        Bridge bridge;              // Crossing gaps
-        IRReader ir;                // Crossing IR gate
-        Basket basket;              // Rotation and basket hooking 
-        ClawSequence leftClaw;      // Override claw polling (i.e raise at gate)
-        ClawSequence rightClaw; 
-
+        Motor &leftMotor; 
+        Motor &rightMotor; 
+        Bridge &bridge;              // Crossing gaps
+        IRReader &ir;                // Crossing IR gate
+        ClawSequence &leftClaw;      // Override claw polling (i.e raise at gate)
+        ClawSequence &rightClaw; 
+        Basket &basket;              // Rotation and basket hooking 
+        TapeFollow &pidControl; 
+        
         // Default variables 
         int defaultSpeed; 
         int speedLeft;
@@ -31,7 +31,6 @@ class MotorControl {
 
         // bridge 
         int edgeThreshold; 
-        
         int angle; 
 
         // Local convenience functions
@@ -46,11 +45,10 @@ class MotorControl {
         void rotateRightJolt();
 
     public: 
-        MotorControl();
         MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
             Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, 
             int qrdThreshold, int gain, int p, int i, int d);
-
+        void begin(); 
         void reset(); 
         void specialStateChecker(); 
         void poll(); 

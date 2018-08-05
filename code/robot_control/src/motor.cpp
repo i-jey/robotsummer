@@ -10,6 +10,16 @@ Motor::Motor(int motorPin1, int motorPin2) {
     this->motorPin2 = motorPin2; 
 }
 
+void Motor::begin() { 
+    analogWrite(0, motorPin1); 
+    pinMode(motorPin1, OUTPUT);
+    
+    delay(50); 
+
+    analogWrite(0, motorPin2); 
+    pinMode(motorPin2, OUTPUT); 
+}
+
 void Motor::forward(int speed) {
     // Accepts positive integers between 0-255. 
     // Runs the motors forward (check polarity of wiring).

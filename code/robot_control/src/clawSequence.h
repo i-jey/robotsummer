@@ -12,11 +12,11 @@ class ClawSequence {
         int lowerTime; 
         int resetTime;  
         int state; 
-        Arm arm; 
+        Arm &arm; 
 
     public: 
-        ClawSequence(); 
-        ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime); 
+        ClawSequence(Arm &arm, int closeTime, int raiseTime, int openTime, int closeTime2, int lowerTime, int resetTime);
+        void begin();  
         void reset(); 
         void poll(); 
         void stateOverride(int specialState); 

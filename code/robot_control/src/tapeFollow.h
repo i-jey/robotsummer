@@ -20,6 +20,7 @@ class TapeFollow {
     public: 
         TapeFollow(); 
         TapeFollow(int qrdLeft, int qrdRight); 
+        void begin(); 
         void followTape(int qrdThreshold, int gain, int p, int i, int d, int defaultMotorSpeed); 
         int getLeftMotorSpeed(); 
         int getRightMotorSpeed(); 

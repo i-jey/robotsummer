@@ -5,7 +5,10 @@ class Arm {
     private: 
         Servo clampServo; 
         Servo armServo; 
-        int pushButton; 
+
+        int armPin; 
+        int clampPin; 
+        int triggerPin; 
         int closeAngle; 
         int openAngle; 
         int openAngleInside; 
@@ -15,7 +18,8 @@ class Arm {
 
     public: 
         Arm();
-        Arm(int clampPin, int armPin, int pushButton, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle); 
+        Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle); 
+        void begin(); 
         bool ewokDetected(); 
         void close(); 
         void open(bool isInside); 
