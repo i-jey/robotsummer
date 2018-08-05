@@ -2,6 +2,7 @@
 #define INCLUDES_H 
 
 // Global variables 
+extern int prevEwokCounter; 
 extern int ewokCounter;  
 extern int edgeCounters; 
 extern int globalMotorStateTracker; 

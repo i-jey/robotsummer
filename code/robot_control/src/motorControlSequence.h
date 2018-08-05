@@ -77,7 +77,7 @@ class MotorControl {
         int s3ReverseTime = 250; 
         int dropEwokTime = 1000; 
         int s3LeftPullBackTime = 250; 
-        int bias = 20; 
+        int bias; 
 };
 
 #endif

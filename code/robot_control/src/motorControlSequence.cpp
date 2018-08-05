@@ -37,7 +37,7 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     bridge.firstBridgeLowerAngle = 40;
     bridge.firstBridgeUpperAngle = 130; 
 
-    reducedSpeed = 125; 
+    reducedSpeed = 150; 
 }
 
 void MotorControl::reset() { 
@@ -102,19 +102,30 @@ void MotorControl::specialStateChecker() {
     //         irGo = true; 
     //     }
     // }
+    if (ewokCounter > prevEwokCounter) { 
+        prevEwokCounter = ewokCounter; 
+        nextState = state; 
+        delay = millis() + 500; 
+        nextDelay = 0; 
+        state = 101; 
+    }
     if (ewokCounter == 2 && clawBeforeGate) { 
         specialStateDelay = millis() + 1250; 
         clawBeforeGate = false;  
     }
     if (ewokCounter == 2 && !throughGate) { 
+        // Second ewok has been picked and dropped, put hands up 
+        // Note the special delay from above is to prevent the claw from closing
+        // before it has dropped the ewok
+
         // Freeze, both hands up! oh god please don't shoot please im too yung
         if (millis() > specialStateDelay) { 
             globalClawStateTracker = 3; 
             throughGate = true;
-            specialStateDelay = millis() + 4250; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 4750; // delay to get from gate to after storm troopers before bringing left claw down 
         }
 }
-    if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers) { 
+    if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
         // We've passed Stormy Daniels, bring left claw down (but wait before polling to prevent it triggering itself)
         globalClawStateTracker = 4; 
         beforeStormTroopers = false; 
@@ -132,20 +143,6 @@ void MotorControl::specialStateChecker() {
         afterStormTroopers = false; 
         delay = millis() + 2000;
     }
-}
-
-float angleToCounts(int angle) { 
-    /**
-     *      Angle --> encoder counts
-     *      
-     *      num counts      angle 
-     *      ----------  *   -----
-     *         2pir          360
-    **/
-    float circumference = 3.14159265 * wheelDiameter; 
-    float arclength = (angle / 360.0) * 3.14159265*wheelToWheelDistance; 
-    float encoderCounts = (countsPerRotation / circumference) * arclength;
-    return encoderCounts; 
 }
 
 void MotorControl::poll() { 
@@ -280,20 +277,33 @@ void MotorControl::poll() {
             leftMotor.write(150 + bias); 
             rightMotor.write(150 - bias); 
 
-            if (millis() > delay && (pidControl.leftOnTape() || pidControl.rightOnTape())) { 
-                state++; 
-                delay = millis() + 200; 
+            if (millis() > delay) { 
+                nextState = ++state;
+                nextDelay = 1000;  
+                state = 101; 
             }
 
             break; 
         case 17: 
-            // Temporary pid to find tape
+            // Sweep for tape 
+            leftMotor.write(115); 
+            rightMotor.write(-115); 
+
+            if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                nextState = ++state; 
+                state = 101; 
+                nextDelay = 200; 
+                delay = millis() + 1000; 
+            }
+            break; 
+        case 18: 
+            // Temporary pid to align
             pid();
             if (millis() > delay) { 
                 state = 2; 
                 firstBridgeSequenceDone = true; 
             }
-            break; 
+            break;
         // THIRD EWOK SEQUENCE 
         case 20:   
             // Third ewok picked + we've probably slided. stop. 
@@ -625,8 +635,7 @@ void MotorControl::continuousReverse() {
 void MotorControl::pid() { 
     // Bridge done, 10k signal, move with a reduced speed 
     if (firstBridgeSequenceDone && irGo && beforeStormTroopers) { 
-
-        pidControl.followTape(qrdThreshold, gain-1, pVal, iVal, dVal, reducedSpeed);
+        pidControl.followTape(qrdThreshold, gain-1, pVal-1, iVal, dVal, reducedSpeed);
     }
     else { 
         pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed);
