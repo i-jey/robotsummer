@@ -5,7 +5,6 @@ constexpr int INSIDE = 1;
 
 // Global variable initialization 
 int globalMotorStateTracker = 0; 
-int globalClawStateTracker = 0; 
 int prevEwokCounter = 0; 
 int ewokCounter = 0; 
 int edgeCounters = 0; 
@@ -103,11 +102,11 @@ int defaultSpeed = 120;
 // Claw 
 int leftClawCloseAngle = 177; 
 int leftClawOpenAngle = 60; 
-int leftClawOpenAngleInside = 92; 
+int leftClawOpenAngleInside = 102; 
 int leftClawLowerAngle = 20; 
 int leftClawRaiseAngle = 170; 
 int leftVertical = 136; 
-int leftDab = 90; 
+int leftPhoenix = 61; 
 
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 105; 
@@ -115,7 +114,7 @@ int rightClawOpenAngleInside = 78;
 int rightClawLowerAngle = 160; 
 int rightClawRaiseAngle = 20; 
 int rightVertical = 44; 
-int rightDab = 20; 
+int rightPhoenix = 115; 
 
 int closeTime = 250; 
 int raiseTime = 1000; 
@@ -131,8 +130,8 @@ bool toggle = false;
 // Construct modules 
 Basket basket = Basket(basketServo, basketLim); 
 Bridge bridge = Bridge(bridgePin1, bridgePin2, left_edge_QRD, right_edge_QRD, edgeThreshold, bridge1LowerAngle, bridge1UpperAngle, bridge2LowerAngle, bridge2UpperAngle); 
-Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_trigger, leftClawCloseAngle, leftClawOpenAngle, leftClawOpenAngleInside, leftClawLowerAngle, leftClawRaiseAngle, leftVertical); 
-Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_trigger, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle, rightVertical); 
+Arm leftArm = Arm(left_clamp_pin, left_arm_pin, left_trigger, leftClawCloseAngle, leftClawOpenAngle, leftClawOpenAngleInside, leftClawLowerAngle, leftClawRaiseAngle, leftVertical, leftPhoenix); 
+Arm rightArm = Arm(right_clamp_pin, right_arm_pin, right_trigger, rightClawCloseAngle, rightClawOpenAngle, rightClawOpenAngleInside, rightClawLowerAngle, rightClawRaiseAngle, rightVertical, rightPhoenix); 
 ClawSequence leftClaw = ClawSequence(leftArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 ClawSequence rightClaw = ClawSequence(rightArm, closeTime, raiseTime, openTime, closeTime2, lowerTime, resetTime); 
 IRReader ir =  IRReader(irPin1k, irPin10k); 
@@ -204,7 +203,7 @@ void initializeFromEEPROM() {
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 2250;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 650;}
+    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 675;}
 
     if (motorControl.s3TiltLeftTime == -1) {motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) {motorControl.s3ReverseTime = 250;}
@@ -419,10 +418,12 @@ int switchMenus = 0;
 void loop() {  
     start = digitalRead(startBtn); 
     if (!start) { 
-        // Bozth claws up 
+        // Both claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
-        
+        // Hold basket
+        basket.holdBasket(); 
+
         if (initialize) {
             initializeFromEEPROM(); 
             initialize = false;
@@ -464,7 +465,6 @@ void loop() {
             // reset global values 
             prevEwokCounter = 0; 
             ewokCounter = 0; 
-            globalClawStateTracker = 2;
             edgeCounters = 0; 
             motorControl.reset(); 
             bridge.raiseBoth(); 
@@ -494,45 +494,5 @@ void loop() {
         motorControl.poll(); 
         rightClaw.poll(); 
         leftClaw.poll(); 
-
-        if (globalClawStateTracker == 0) {
-            rightArm.lower(); leftArm.lower(); 
-            rightArm.open(!INSIDE); leftArm.open(!INSIDE); 
-            rightClaw.stateOverride(0);
-            leftClaw.stateOverride(0);  
-        }
-        else if (globalClawStateTracker == 1) { 
-            // right up
-            rightClaw.stateOverride(10); 
-        }
-        else if (globalClawStateTracker == 2) { 
-            // left up 
-            leftClaw.stateOverride(10); 
-        }
-        else if (globalClawStateTracker == 3) { 
-            // both up
-            leftClaw.stateOverride(10); 
-            rightClaw.stateOverride(10); 
-        }
-        else if (globalClawStateTracker == 4) { 
-            // left down, right up, don't start polling just yet  
-            leftClaw.stateOverride(11); 
-            rightClaw.stateOverride(10); 
-        }
-        else if (globalClawStateTracker == 5) { 
-            // left claw start polling
-            leftClaw.stateOverride(0); 
-        }
-        else if (globalClawStateTracker == 6) { 
-            // both down 
-            leftClaw.stateOverride(11); 
-            rightClaw.stateOverride(11); 
-        }
-        else if (globalClawStateTracker == 7) { 
-            leftArm.close(); leftArm.customAngle(leftDab); 
-            rightArm.close(); rightArm.customAngle(rightDab); 
-        }
-
-        globalClawStateTracker = 99; 
     }
 }
