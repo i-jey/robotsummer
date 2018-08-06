@@ -65,6 +65,11 @@ void Bridge::raiseBoth() {
     bridgeServo2.write(140); 
 }
 
+void Bridge::customAngle(int angle1, int angle2) { 
+    bridgeServo1.write(angle1);
+    bridgeServo2.write(angle2);  
+}
+
 int Bridge::getLeftEdgeReading() { 
     return analogRead(QRDLeft); 
 }

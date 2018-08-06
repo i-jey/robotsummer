@@ -105,7 +105,7 @@ int leftClawOpenAngle = 60;
 int leftClawOpenAngleInside = 102; 
 int leftClawLowerAngle = 20; 
 int leftClawRaiseAngle = 170; 
-int leftVertical = 136; 
+int leftVertical = 130; 
 int leftPhoenix = 61; 
 
 int rightClawCloseAngle = 0; 
@@ -113,7 +113,7 @@ int rightClawOpenAngle = 105;
 int rightClawOpenAngleInside = 78; 
 int rightClawLowerAngle = 160; 
 int rightClawRaiseAngle = 20; 
-int rightVertical = 44; 
+int rightVertical = 60; 
 int rightPhoenix = 115; 
 
 int closeTime = 250; 

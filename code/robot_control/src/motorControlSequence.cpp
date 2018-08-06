@@ -124,7 +124,7 @@ void MotorControl::specialStateChecker() {
             rightClaw.stateOverride(CLAW_UP); 
              
             throughGate = true;
-            specialStateDelay = millis() + 3500; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 3250; // delay to get from gate to after storm troopers before bringing left claw down 
         }
     }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
@@ -146,15 +146,15 @@ void MotorControl::specialStateChecker() {
         state = 40; 
         afterStormTroopers = false; 
         delay = millis() + 25;
-        specialStateDelay = 1350; 
+        specialStateDelay = 2000; 
     }
-    if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
-        // Bring left claw back up after ewok has been picked and dropped
-        if (millis() > specialStateDelay) { 
-            leftClaw.stateOverride(CLAW_UP); 
-            afterThirdEwok = false; 
-        }
-    }
+    // if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
+    //     // Bring left claw back up after ewok has been picked and dropped
+    //     if (millis() > specialStateDelay) { 
+    //         leftClaw.stateOverride(CLAW_UP); 
+    //         afterThirdEwok = false; 
+    //     }
+    // }
 }
 
 void MotorControl::poll() { 
@@ -219,17 +219,20 @@ void MotorControl::poll() {
             rotateLeftJolt(); 
             if (millis() > delay) { 
                 state++; 
+                delay = millis() + 100; 
             }
             break; 
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(-180); 
+            leftMotor.write(-200); 
             rightMotor.write(0); 
 
-            if (bridge.detectLeftEdge() && bridge.detectRightEdge()) { 
-                state++; 
-                delay = millis() + 20;  
-            } 
+            if (millis() > delay) { 
+                if ((bridge.detectLeftEdge() && bridge.detectRightEdge()) || (!bridge.detectLeftEdge() && !bridge.detectRightEdge())) { 
+                    state++; 
+                    delay = millis() + 20;  
+                } 
+            }
             break; 
         case 11: 
             // Temporary jolt right 
@@ -331,9 +334,12 @@ void MotorControl::poll() {
             break;
         // DM SLIDE  SEQUENCE 
         case 20: 
-            // Third ewok picked + we've probably slided. stop. 
-            leftMotor.write(0); 
-            rightMotor.write(0); 
+            // Hold the ewok
+            leftClaw.stateOverride(CLAW_UP); 
+
+            // We've probably slided. Temporary backward jolt. 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
 
             if (millis() > delay) { 
                 state++; 
@@ -359,123 +365,202 @@ void MotorControl::poll() {
             if (millis() > delay) { 
                 nextState = ++state;  
                 state = 101;
-                delay = millis() + 50000; 
+                delay = millis() + 1500; 
                 nextDelay = 0; 
             }
             break; 
         case 23: 
-            // Drive forward until right edge is off 
-            leftMotor.write(defaultSpeed); 
-            rightMotor.write(defaultSpeed); 
+            leftClaw.stateOverride(CLAW_DOWN); 
 
-            if (bridge.detectRightEdge()) { 
-                nextState = 26; 
-                state = 101; 
-                delay = millis() + 500; 
-                nextDelay = 0; 
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 25; 
             }
             break; 
         case 24: 
-            // Bring left up to align with edge
-            leftMotor.write(defaultSpeed); 
-            rightMotor.write(0); 
+            // Rotate back on to tape, temporary right jolt
+            if (millis() < delay) { 
+                rotateRightJolt();  
+            }
+            else { 
+                rotateRightJolt(); 
 
-            if (bridge.detectLeftEdge()) { 
-                nextState = ++state; 
-                state = 101; 
-                delay = millis() + 500; 
-                nextDelay = s3ReverseTime; 
+                if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                    state++; 
+                    delay = millis() + 25; 
+                }
             }
             break; 
-        case 25: 
-            // reverse slightly from edge
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(-defaultSpeed); 
-
+        case 25:   
+            // Temporary left jolt 
+            rotateLeftJolt(); 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + dropEwokTime;
             }
             break; 
         case 26: 
-            // Drop left ewok
-            
+            // Drive forward until edge detected 
+            leftMotor.write(defaultSpeed); 
+            rightMotor.write(defaultSpeed); 
 
-            if (millis() > delay) { 
+            if (bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
                 state++; 
+                delay = millis() + 25; 
             }
             break; 
-        case 27: 
-            // Both arms back up, rotate right until left edge qrd detects tape
-            leftMotor.write(0); 
-            rightMotor.write(-defaultSpeed); 
-
-            if (bridge.detectLeftEdge()) { 
-                nextState = ++state; 
-                state = 101; 
-                delay = millis() + 500; 
-                nextDelay = 0;  
+        case 27:    
+            // Temporary backward jolt 
+            if (millis() < delay) { 
+                leftMotor.write(-255); 
+                rightMotor.write(-255); 
+            }
+            else { 
+                state++; 
+                delay = millis() + 1500; 
             }
             break; 
         case 28: 
-            // Continue rotation right until left edge not on tape
-            leftMotor.write(0); 
-            rightMotor.write(-defaultSpeed); 
+            bridge.lowerBoth(); 
 
-            if (!bridge.detectLeftEdge()) { 
+            if (millis() > delay) { 
                 state++; 
+                delay = millis() + 250; 
             }
             break; 
         case 29: 
-            // Continue rotation right until left edge is on tape again
+            leftMotor.write(-defaultSpeed); 
+            rightMotor.write(-defaultSpeed);
 
-            if (bridge.detectLeftEdge()) { 
-                nextState = ++state; 
-                state = 101; 
-                delay = millis() + 500; 
-                nextDelay = s3LeftPullBackTime;
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 1000; 
+                leftClaw.stateOverride(CLAW_DOWN); 
             }
             break; 
         case 30: 
-            // Drop right ewok 
+            leftMotor.write(defaultSpeed); 
+            rightMotor.write(defaultSpeed); 
+            if (millis() > delay) { 
+                state = 100; 
+                leftClaw.stateOverride(CLAW_POLL); 
+                rightClaw.stateOverride(CLAW_PHOENIX); 
+            }
+            break; 
+        // case 23: 
+        //     // Drive forward until right edge is off 
+        //     leftMotor.write(defaultSpeed); 
+        //     rightMotor.write(defaultSpeed); 
+
+        //     if (bridge.detectRightEdge()) { 
+        //         nextState = 26; 
+        //         state = 101; 
+        //         delay = millis() + 500; 
+        //         nextDelay = 0; 
+        //     }
+        //     break; 
+        // case 24: 
+        //     // Bring left up to align with edge
+        //     leftMotor.write(defaultSpeed); 
+        //     rightMotor.write(0); 
+
+        //     if (bridge.detectLeftEdge()) { 
+        //         nextState = ++state; 
+        //         state = 101; 
+        //         delay = millis() + 500; 
+        //         nextDelay = s3ReverseTime; 
+        //     }
+        //     break; 
+        // case 25: 
+        //     // reverse slightly from edge
+        //     leftMotor.write(-defaultSpeed); 
+        //     rightMotor.write(-defaultSpeed); 
+
+        //     if (millis() > delay) { 
+        //         state++; 
+        //         delay = millis() + dropEwokTime;
+        //     }
+        //     break; 
+        // case 26: 
+        //     // Drop left ewok
+            
+
+        //     if (millis() > delay) { 
+        //         state++; 
+        //     }
+        //     break; 
+        // case 27: 
+        //     // Both arms back up, rotate right until left edge qrd detects tape
+        //     leftMotor.write(0); 
+        //     rightMotor.write(-defaultSpeed); 
+
+        //     if (bridge.detectLeftEdge()) { 
+        //         nextState = ++state; 
+        //         state = 101; 
+        //         delay = millis() + 500; 
+        //         nextDelay = 0;  
+        //     }
+        //     break; 
+        // case 28: 
+        //     // Continue rotation right until left edge not on tape
+        //     leftMotor.write(0); 
+        //     rightMotor.write(-defaultSpeed); 
+
+        //     if (!bridge.detectLeftEdge()) { 
+        //         state++; 
+        //     }
+        //     break; 
+        // case 29: 
+        //     // Continue rotation right until left edge is on tape again
+
+        //     if (bridge.detectLeftEdge()) { 
+        //         nextState = ++state; 
+        //         state = 101; 
+        //         delay = millis() + 500; 
+        //         nextDelay = s3LeftPullBackTime;
+        //     }
+        //     break; 
+        // case 30: 
+        //     // Drop right ewok 
              
 
-            if (millis() > delay) { 
-                state++;
-            }
-            break; 
-        case 31: 
-            // Both arms back up
+        //     if (millis() > delay) { 
+        //         state++;
+        //     }
+        //     break; 
+        // case 31: 
+        //     // Both arms back up
 
-            // Rotate left until right edge qrd detects tape 
-            leftMotor.write(0); 
-            rightMotor.write(defaultSpeed - 20); 
+        //     // Rotate left until right edge qrd detects tape 
+        //     leftMotor.write(0); 
+        //     rightMotor.write(defaultSpeed - 20); 
 
-            if (bridge.detectRightEdge()) { 
-                nextState = ++state; 
-                state = 101; 
-                delay = millis() + 500;
-            }
-            break; 
-        case 32: 
-            // Drive forward with left bias until edge detected
-            leftMotor.write(defaultSpeed + 20); 
-            rightMotor.write(defaultSpeed - 20); 
+        //     if (bridge.detectRightEdge()) { 
+        //         nextState = ++state; 
+        //         state = 101; 
+        //         delay = millis() + 500;
+        //     }
+        //     break; 
+        // case 32: 
+        //     // Drive forward with left bias until edge detected
+        //     leftMotor.write(defaultSpeed + 20); 
+        //     rightMotor.write(defaultSpeed - 20); 
 
-            // Flag maneuver as done 
-            ohBabyADouble = true; 
+        //     // Flag maneuver as done 
+        //     ohBabyADouble = true; 
 
-            // Bring claws back down (CURRENTLY 3, SWITCH TO 0)
+        //     // Bring claws back down (CURRENTLY 3, SWITCH TO 0)
               
-            break; 
+        //     break; 
         // THREE EWOK RETURN SEQUENCE
         case 40: 
             leftMotor.write(-255); 
             rightMotor.write(-255); 
 
             if (millis() > delay) { 
-                state++; 
-                delay = millis() + 25; 
+                nextState = ++state; 
+                nextDelay = millis() + 25; 
+                delay = millis() + 1000; 
+                state = 101; 
             }
             break; 
         case 41: 
@@ -492,7 +577,7 @@ void MotorControl::poll() {
 
             if (bridge.detectRightEdge()) { 
                 state++; 
-                delay = millis() + 25; 
+                delay = millis() + 100; 
             }
             break; 
         case 42: 
@@ -513,6 +598,7 @@ void MotorControl::poll() {
             }
             else { 
                 state++; 
+                bridge.customAngle(80, 80); 
             }
             break; 
         case 43: 
@@ -522,29 +608,29 @@ void MotorControl::poll() {
 
             if (!basket.readBasketSwitch()) { 
                 state++; 
-                delay = millis() + 25; 
-            }
-            break; 
-        case 44:
-            // Temporary backward jolt after hitting basket limit switch
-            if (millis() < delay) { 
-                leftMotor.write(-255); 
-                rightMotor.write(-255); 
-            } 
-            else { 
-                state++; 
                 delay = millis() + 2750; 
             }
             break; 
-        case 45: 
+        case 44:
             leftMotor.write(0); 
             rightMotor.write(0); 
             basket.lowerBasket(); 
+
             if (millis() > delay) { 
-                state = 100; 
-                basket.holdBasket(); 
+                state++; 
+                delay = millis() + 1500; 
             }
             break; 
+        case 45: 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
+
+            if (millis() > delay) { 
+                state = 100; 
+                leftClaw.stateOverride(CLAW_PHOENIX); 
+                rightClaw.stateOverride(CLAW_PHOENIX); 
+            }
+            break;
         case 100: 
             leftMotor.write(0); 
             rightMotor.write(0);  

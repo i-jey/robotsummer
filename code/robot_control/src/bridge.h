@@ -22,6 +22,7 @@ class Bridge {
         void raiseBridge1(); 
         bool lowerBoth(); 
         void raiseBoth(); 
+        void customAngle(int angle1, int angle2); 
         int getLeftEdgeReading(); 
         int getRightEdgeReading(); 
         void updateThreshold(int newThreshold); 
