@@ -22,6 +22,7 @@ extern int leftClawState;
 #include <EEPROM.h>
 
 // header files 
+#include "basket.h"
 #include "bridge.h"
 #include "motor.h"
 #include "motorinit.h"
@@ -29,8 +30,7 @@ extern int leftClawState;
 #include "clawSequence.h"
 #include "tapeFollow.h"
 #include "infraredReader.h"
-#include "basket.h"
 #include "motorControlSequence.h"
-#include "menu.h"
+// #include "menu.h"
 
 #endif 

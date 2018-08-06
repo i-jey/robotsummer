@@ -17,8 +17,6 @@ Bridge::Bridge(int bridgePin1, int bridgePin2, int QRDLeftPin, int QRDRightPin, 
 void Bridge::begin() { 
     bridgeServo1.attach(bridgePin1); 
     bridgeServo2.attach(bridgePin2); 
-    // pinMode(bridgePin1, OUTPUT);
-    // pinMode(bridgePin2, OUTPUT); 
     pinMode(QRDLeft, INPUT_PULLDOWN); 
     pinMode(QRDRight, INPUT_PULLDOWN); 
 

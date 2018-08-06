@@ -29,7 +29,7 @@ enum MenuItems {
     s3Reverse, 
     s3Drop, 
     s3Pullback, 
-    bridgeBias, 
+    pidTime, 
 };
 
 // Menu pins 
@@ -112,7 +112,7 @@ int leftDab = 90;
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 105; 
 int rightClawOpenAngleInside = 78; 
-int rightClawLowerAngle = 157; 
+int rightClawLowerAngle = 160; 
 int rightClawRaiseAngle = 20; 
 int rightVertical = 44; 
 int rightDab = 20; 
@@ -141,10 +141,11 @@ Motor rightMotor = Motor(right_motor_pin1, right_motor_pin2);
 TapeFollow pidControl = TapeFollow(left_pid_QRD, right_pid_QRD); 
 MotorControl motorControl = MotorControl(leftMotor, rightMotor, bridge, ir, basket, pidControl, leftClaw, rightClaw, qrdThreshold, gain, p, i, d);
 MotorInit motorInit = MotorInit(); 
+
 void setup() {  
     // Serial.begin(9600);
-    
-    // // Menu dials
+
+    // Menu dials
     pinMode(startBtn, INPUT_PULLDOWN);
     pinMode(menuPlus, INPUT_PULLDOWN); 
     pinMode(menuToggle, INPUT_PULLDOWN);
@@ -152,9 +153,19 @@ void setup() {
     pinMode(menuPot, INPUT); 
     start = digitalRead(startBtn);  
 
+    bridge.begin(); 
+    leftMotor.begin(); 
+    rightMotor.begin(); 
+    basket.begin(); 
+    leftClaw.begin(); 
+    rightClaw.begin(); 
+    pidControl.begin(); 
+    ir.begin(); 
+
+    // motorControl.begin();
     oled.begin(); 
     oled.setFont(SmallFont); 
-    motorControl.begin();
+    basket.begin(); 
 }
 
 void writeToEEPROM(int loc, int val) {
@@ -177,22 +188,23 @@ void initializeFromEEPROM() {
     motorControl.edgeReverseDistance = readFromEEPROM(MenuItems::edgeReverseDistance); 
     motorControl.dropBridgeDistance = readFromEEPROM(MenuItems::dropBridgeDistance); 
     motorControl.driveOverDistance = readFromEEPROM(MenuItems::driveOverDistance); 
+    motorControl.irPidTime = readFromEEPROM(MenuItems::pidTime); 
 
     // Bridge values 
     edgeThreshold = readFromEEPROM(MenuItems::edgeThresh); motorControl.updateEdgeThreshold(edgeThreshold);
 
     // Default values after flashing 
-    if (p == -1) {p = 4; motorControl.updateP(p);}
+    if (p == -1) {p = 5; motorControl.updateP(p);}
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 180; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (defaultSpeed == -1) {defaultSpeed = 230; motorControl.updateDefaultSpeed(defaultSpeed);}
 
-    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 100;}
-    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 250;}
-    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1500;}
+    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
+    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 300;}
+    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 2250;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.bias == -1) {motorControl.bias = 0;}
+    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 650;}
 
     if (motorControl.s3TiltLeftTime == -1) {motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) {motorControl.s3ReverseTime = 250;}
@@ -277,10 +289,10 @@ void bridgeMenu() {
 
     oled.print("Bridge Menu", 0, 0); 
     oled.print("Thresh: ", 0, 10); 
-    oled.print("Reverse1 time[ms]: ", 0, 20); 
-    oled.print("Reverse2 time[ms]: ", 0, 30); 
-    oled.print("Over time[ms]: ", 0, 40); 
-    oled.print("Bias: ", 0, 50); 
+    oled.print("Reverse1 time: ", 0, 20); 
+    oled.print("Reverse2 time: ", 0, 30); 
+    oled.print("Over time: ", 0, 40); 
+    oled.print("IR Pid time: ", 0, 50); 
     oled.print("<--", 45, (optionState+1)*10); 
 
     delay(125); // Debouncing delay 
@@ -304,7 +316,7 @@ void bridgeMenu() {
     oled.printNumI(motorControl.edgeReverseDistance, RIGHT, 20); 
     oled.printNumI(motorControl.dropBridgeDistance, RIGHT, 30); 
     oled.printNumI(motorControl.driveOverDistance, RIGHT, 40); 
-    oled.printNumI(motorControl.bias, RIGHT, 50);
+    oled.printNumI(motorControl.irPidTime, RIGHT, 50);
 
     if (toggle) { 
         oled.print("Edit", RIGHT, 0); 
@@ -328,8 +340,8 @@ void bridgeMenu() {
                 writeToEEPROM(MenuItems::driveOverDistance, motorControl.driveOverDistance);                
                 break;
             case 4: 
-                motorControl.bias = potVal; 
-                writeToEEPROM(MenuItems::bridgeBias, motorControl.bias); 
+                motorControl.irPidTime = potVal; 
+                writeToEEPROM(MenuItems::pidTime, motorControl.irPidTime); 
                 break; 
             default:
                 break; 
@@ -407,7 +419,7 @@ int switchMenus = 0;
 void loop() {  
     start = digitalRead(startBtn); 
     if (!start) { 
-        // Both claws up 
+        // Bozth claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
         

@@ -8,14 +8,14 @@ class MotorControl {
         int state; 
 
         // Modules to keep track of / control
+        Basket &basket;              // Rotation and basket hooking 
+        Bridge &bridge;              // Crossing gaps
         Motor &leftMotor; 
         Motor &rightMotor; 
-        Bridge &bridge;              // Crossing gaps
-        IRReader &ir;                // Crossing IR gate
         ClawSequence &leftClaw;      // Override claw polling (i.e raise at gate)
         ClawSequence &rightClaw; 
-        Basket &basket;              // Rotation and basket hooking 
         TapeFollow &pidControl; 
+        IRReader &ir;                // Crossing IR gate
         
         // Default variables 
         int defaultSpeed; 
@@ -76,6 +76,7 @@ class MotorControl {
         int dropEwokTime = 1000; 
         int s3LeftPullBackTime = 250; 
         int bias; 
+        int irPidTime; 
 };
 
 #endif

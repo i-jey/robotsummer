@@ -2,8 +2,8 @@
 
 Basket::Basket(){}; 
 Basket::Basket(int servoPin, int basketLim) { 
+    this->servoPin = servoPin;
     this->basketLim = basketLim;
-    basketServo.writeMicroseconds(1420); 
 }
 
 void Basket::begin() { 
@@ -13,15 +13,15 @@ void Basket::begin() {
 }
 
 void Basket::raiseBasket() {
-    basketServo.writeMicroseconds(1100); 
-}
-
-void Basket::lowerBasket() {
     basketServo.writeMicroseconds(1600); 
 }
 
+void Basket::lowerBasket() {
+    basketServo.writeMicroseconds(1100); 
+}
+
 void Basket::holdBasket() { 
-    basketServo.writeMicroseconds(1420); 
+    basketServo.writeMicroseconds(1425); 
 }
 
 bool Basket::readBasketSwitch() { 

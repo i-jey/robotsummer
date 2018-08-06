@@ -32,16 +32,16 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     bridge.firstBridgeLowerAngle = 40;
     bridge.firstBridgeUpperAngle = 130; 
 
-    reducedSpeed = 150; 
+    reducedSpeed = 180; 
 }
 
 void MotorControl::begin() { 
-    basket.begin(); 
-    pidControl.begin(); 
     leftMotor.begin(); 
     rightMotor.begin(); 
     bridge.begin(); 
+    basket.begin(); 
     ir.begin(); 
+    pidControl.begin(); 
     leftClaw.begin(); 
     rightClaw.begin(); 
 }
@@ -71,7 +71,8 @@ void MotorControl::specialStateChecker() {
     if (bridge.detectLeftEdge()) { 
         if (edgeCounters == 0 && ewokCounter == 1) { 
             // Switch to first bridge sequence
-            state = 10; 
+            state = 9; 
+            delay = millis() + 100; 
             edgeCounters++; 
         }
 
@@ -91,7 +92,7 @@ void MotorControl::specialStateChecker() {
             // globalClawStateTracker = 2; // Lift left arm 
             leftClaw.stateOverride(CLAW_UP);
         }
-        else if ((ir.read10k() || !ir.read1k()) && detected1k == true) { 
+        else if ((ir.read10k() && !ir.read1k()) && detected1k == true) { 
             if (irGo == false) { 
                 state = 2; 
                 irGo = true; 
@@ -132,7 +133,7 @@ void MotorControl::specialStateChecker() {
             rightClaw.stateOverride(CLAW_UP); 
              
             throughGate = true;
-            specialStateDelay = millis() + 4750; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 3500; // delay to get from gate to after storm troopers before bringing left claw down 
         }
 }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
@@ -217,14 +218,20 @@ void MotorControl::poll() {
             
             break; 
         // FIRST BRIDGE SEQUENCE
+        case 9: 
+            rotateLeftJolt(); 
+            if (millis() > delay) { 
+                state++; 
+            }
+            break; 
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(-180); 
+            leftMotor.write(-190); 
             rightMotor.write(0); 
 
-            if (bridge.detectRightEdge()) { 
+            if (!bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
                 state++; 
-                delay = millis() + 1000;  
+                delay = millis() + 150;  
             } 
             break; 
         case 11: 
@@ -298,13 +305,13 @@ void MotorControl::poll() {
             break; 
         case 17: 
             // Sweep for tape 
-            leftMotor.write(115); 
-            rightMotor.write(-115); 
+            leftMotor.write(180); 
+            rightMotor.write(-180); 
 
             if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
                 nextState = ++state; 
                 state = 101; 
-                nextDelay = 200; 
+                nextDelay = irPidTime; 
                 delay = millis() + 1000; 
             }
             break; 
@@ -514,18 +521,20 @@ void MotorControl::poll() {
             }
             break; 
         case 44: 
-            pid(); 
+            leftMotor.write(130);
+            rightMotor.write(130);  
             basket.holdBasket(); 
 
             if (!basket.readBasketSwitch()) { 
                 state++; 
-                delay = millis() + 500; 
+                delay = millis() + 2000; 
             }
             break; 
         case 45: 
             basket.lowerBasket(); 
             if (millis() > delay) { 
                 state=100; 
+                basket.holdBasket(); 
                 globalClawStateTracker = 7; 
             }
             break; 
@@ -666,11 +675,11 @@ void MotorControl::rotateRight() {
 }
 
 void MotorControl::rotateLeftJolt() { 
-    leftMotor.write(-200); 
-    leftMotor.write(200); 
+    leftMotor.write(-250); 
+    leftMotor.write(250); 
 }
 
 void MotorControl::rotateRightJolt() { 
-    rightMotor.write(200); 
-    rightMotor.write(-200); 
+    rightMotor.write(250); 
+    rightMotor.write(-250); 
 }
