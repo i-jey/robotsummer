@@ -15,10 +15,11 @@ class Arm {
         int lowerAngle; 
         int raiseAngle; 
         int verticalAngle; 
+        int phoenixAngle;
 
     public: 
         Arm();
-        Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle); 
+        Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle, int phoenixAngle); 
         void begin(); 
         bool ewokDetected(); 
         void close(); 
@@ -27,6 +28,7 @@ class Arm {
         void verticalRaise(); 
         void lower(); 
         void customAngle(int angle); 
+        void phoenix(); 
 }; 
 
 #endif 

@@ -78,9 +78,13 @@ void ClawSequence::poll() {
             arm.verticalRaise();  
             break; 
         case 11: 
-            arm.open(!INSIDE); 
             arm.lower(); 
+            arm.open(!INSIDE); 
             break;
+        case 12: 
+            // Phoenix 
+            arm.phoenix(); 
+            arm.close(); 
         default: 
             break; 
     }; 

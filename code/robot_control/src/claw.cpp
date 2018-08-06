@@ -1,7 +1,7 @@
 #include "includes.h"
 
 Arm::Arm(){}; // default constructor otherwise C++ whines
-Arm::Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle) { 
+Arm::Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle, int openAngleInside, int lowerAngle, int raiseAngle, int verticalAngle, int phoenixAngle) { 
     this->clampPin = clampPin; 
     this->armPin = armPin; 
     this->triggerPin = triggerPin; 
@@ -11,6 +11,7 @@ Arm::Arm(int clampPin, int armPin, int triggerPin, int closeAngle, int openAngle
     this->lowerAngle = lowerAngle; 
     this->raiseAngle = raiseAngle; 
     this->verticalAngle = verticalAngle; 
+    this->phoenixAngle = phoenixAngle; 
 }
 
 void Arm::begin() { 
@@ -54,4 +55,8 @@ void Arm::lower() {
 
 void Arm::customAngle(int angle) { 
     armServo.write(angle); 
+}
+
+void Arm::phoenix() { 
+    armServo.write(phoenixAngle); 
 }
