@@ -20,7 +20,7 @@ class Bridge {
         bool detectRightEdge(); 
         void lowerBridge1(int angle); 
         void raiseBridge1(); 
-        bool lowerBoth(); 
+        void lowerBoth(); 
         void raiseBoth(); 
         void customAngle(int angle1, int angle2); 
         int getLeftEdgeReading(); 

@@ -7,7 +7,6 @@ constexpr int INSIDE = 1;
 int globalMotorStateTracker = 0; 
 int prevEwokCounter = 0; 
 int ewokCounter = 0; 
-int edgeCounters = 0; 
 int rightClawState = 0; 
 int leftClawState = 0; 
 
@@ -88,7 +87,7 @@ constexpr int basketLim = PC13;
 int edgeThreshold = 500; 
 int bridge1LowerAngle = 40; 
 int bridge1UpperAngle = 115; 
-int bridge2LowerAngle = 80; 
+int bridge2LowerAngle = 60; 
 int bridge2UpperAngle = 165; 
 
 // PID constants
@@ -104,7 +103,7 @@ int leftClawCloseAngle = 177;
 int leftClawOpenAngle = 60; 
 int leftClawOpenAngleInside = 102; 
 int leftClawLowerAngle = 20; 
-int leftClawRaiseAngle = 170; 
+int leftClawRaiseAngle = 180; 
 int leftVertical = 130; 
 int leftPhoenix = 61; 
 
@@ -466,7 +465,6 @@ void loop() {
             // reset global values 
             prevEwokCounter = 0; 
             ewokCounter = 0; 
-            edgeCounters = 0; 
             motorControl.reset(); 
             bridge.raiseBoth(); 
 

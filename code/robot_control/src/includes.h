@@ -4,7 +4,6 @@
 // Global variables 
 extern int prevEwokCounter; 
 extern int ewokCounter;  
-extern int edgeCounters; 
 extern int globalMotorStateTracker; 
 extern int globalClawStateTracker; 
 extern bool raiseBasket; 

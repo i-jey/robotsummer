@@ -51,13 +51,9 @@ void Bridge::raiseBridge1() {
     bridgeServo1.write(firstBridgeUpperAngle); 
 }
 
-bool Bridge::lowerBoth() { 
-    if (detectLeftEdge() && detectRightEdge()) { 
-        bridgeServo1.write(firstBridgeLowerAngle); 
-        bridgeServo2.write(secondBridgeLowerAngle); 
-        return true; 
-    }
-    return false; 
+void Bridge::lowerBoth() { 
+    bridgeServo1.write(firstBridgeLowerAngle); 
+    bridgeServo2.write(secondBridgeLowerAngle);
 }
 
 void Bridge::raiseBoth() { 
