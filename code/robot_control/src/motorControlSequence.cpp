@@ -73,7 +73,7 @@ void MotorControl::specialStateChecker() {
 
     // Switch to first bridge sequence
     if (ewokCounter == 1 && firstBridge) { 
-        state = 9; 
+        state = 8; 
         firstBridge = false; 
     }
 
@@ -136,7 +136,8 @@ void MotorControl::specialStateChecker() {
         // Sequence to switch to after third ewok
         state = 50; 
         afterStormTroopers = false; 
-        delay = millis() + 550;
+        // delay = millis() + 550;
+        delay = millis() + 500; 
         specialStateDelay = millis() + 1350; 
     }
     if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
@@ -206,26 +207,40 @@ void MotorControl::poll() {
             
             break; 
         // FIRST BRIDGE SEQUENCE
-        case 9:  
+        case 8:  
             // Continue pid until edge found
             pid(); 
 
-            if (bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
+            if (bridge.detectLeftEdge()) { 
+                state++;
+                delay = millis() + 40; 
+            }
+            break; 
+        case 9: 
+            // Temporary left pivot jolt
+            leftMotor.write(-165); 
+            rightMotor.write(165); 
+
+            if (millis() > delay) { 
                 state++;
             }
             break; 
         case 10:
-            if (bridge.detectLeftEdge() && bridge.detectRightEdge()) { 
+            if (!bridge.detectLeftEdge() && !bridge.detectRightEdge()) { 
                 state++; 
                 delay = millis() + 50; 
             }
             else if (bridge.detectRightEdge() && !bridge.detectLeftEdge()) { 
-                leftMotor.write(0); 
-                rightMotor.write(-255); 
+                leftMotor.write(200); 
+                rightMotor.write(-200); 
             }
             else if (bridge.detectLeftEdge() && !bridge.detectRightEdge()) { 
-                leftMotor.write(-255); 
-                rightMotor.write(0); 
+                leftMotor.write(-200); 
+                rightMotor.write(200); 
+            }
+            else { 
+                leftMotor.write(-200); 
+                rightMotor.write(-200); 
             }
             break; 
         case 11: 
@@ -287,8 +302,8 @@ void MotorControl::poll() {
             break; 
         case 16: 
             // Drive over bridge
-            leftMotor.write(150 + bias); 
-            rightMotor.write(150 - bias); 
+            leftMotor.write(150 + 15); 
+            rightMotor.write(150 - 15); 
 
             if (millis() > delay) { 
                 nextState = ++state;
@@ -440,6 +455,14 @@ void MotorControl::poll() {
             }
             break; 
         // THREE EWOK RETURN SEQUENCE
+        case 39: 
+            leftMotor.write(0); 
+            rightMotor.write(0); 
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 100; 
+            }
+            break; 
         case 40: 
             leftMotor.write(-255); 
             rightMotor.write(-255); 
@@ -447,7 +470,7 @@ void MotorControl::poll() {
             if (millis() > delay) { 
                 nextState = ++state; 
                 nextDelay = 50; 
-                delay = millis() + 1000; 
+                delay = millis() + 1350; 
                 state = 101; 
             }
             break; 
@@ -457,18 +480,21 @@ void MotorControl::poll() {
                 rotateRightJolt();
             }
             else { 
-                rotateRight();
+                // Rotate right, pivot about center
+                leftMotor.write(180);
+                rightMotor.write(-180); 
             }  
 
             if (bridge.detectRightEdge()) { 
                 state++; 
-                delay = millis() + 100; 
+                delay = millis() + 50; 
             }
             break; 
         case 42: 
             // Temporary jolt to stop sliding after finding right edge
             if (millis() < delay) { 
-                rotateLeftJolt(); 
+                leftMotor.write(-255); 
+                rightMotor.write(255); 
                 leftClaw.stateOverride(CLAW_PHOENIX); 
                 rightClaw.stateOverride(CLAW_PHOENIX);
             }
@@ -491,10 +517,19 @@ void MotorControl::poll() {
 
             if (!basket.readBasketSwitch()) { 
                 state++; 
-                delay = millis() + 2750; 
+                delay = millis() + 50; 
             }
             break; 
         case 44: 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
+
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 2250; 
+            }
+            break; 
+        case 45: 
             leftMotor.write(0); 
             rightMotor.write(0); 
             basket.lowerBasket(); 
@@ -504,7 +539,7 @@ void MotorControl::poll() {
                 delay = millis() + 1500; 
             }
             break; 
-        case 45: 
+        case 46: 
             bridge.customAngle(80, 80); 
             leftMotor.write(-255); 
             rightMotor.write(-255); 
@@ -758,7 +793,7 @@ void MotorControl::continuousReverse() {
 void MotorControl::pid() { 
     // Bridge done, 10k signal, move with a reduced speed 
     if (firstBridgeSequenceDone && irGo && beforeStormTroopers) { 
-        pidControl.followTape(qrdThreshold, gain-1, pVal-1, iVal, dVal, reducedSpeed);
+        pidControl.followTape(qrdThreshold, gain-2, pVal-1, iVal, dVal, reducedSpeed);
     }
     else { 
         pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed);

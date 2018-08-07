@@ -197,12 +197,12 @@ void initializeFromEEPROM() {
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
     if (defaultSpeed == -1) {defaultSpeed = 230; motorControl.updateDefaultSpeed(defaultSpeed);}
 
-    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 75;}
+    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 0;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 300;}
-    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 2250;}
+    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 2100;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 675;}
+    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 685;}
 
     if (motorControl.s3TiltLeftTime == -1) {motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) {motorControl.s3ReverseTime = 250;}
@@ -469,7 +469,8 @@ void loop() {
             bridge.raiseBoth(); 
 
             motorControl.stateOverride(2, 0); // state 0 = continuous forward drive
-            leftClaw.stateOverride(10); 
+            leftArm.verticalRaise(); leftArm.close(); leftClaw.stateOverride(10); 
+            // leftArm.lower(); leftArm.open(!INSIDE); leftClaw.stateOverride(0);
             rightArm.lower(); rightArm.open(!INSIDE); rightClaw.stateOverride(0); 
 
             oled.print("2", 60, 30); oled.update(); 
