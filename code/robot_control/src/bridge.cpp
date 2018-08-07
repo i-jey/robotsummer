@@ -53,16 +53,16 @@ void Bridge::raiseBridge1() {
 
 bool Bridge::lowerBoth() { 
     if (detectLeftEdge() && detectRightEdge()) { 
-        bridgeServo1.write(47); 
-        bridgeServo2.write(47); 
+        bridgeServo1.write(firstBridgeLowerAngle); 
+        bridgeServo2.write(secondBridgeLowerAngle); 
         return true; 
     }
     return false; 
 }
 
 void Bridge::raiseBoth() { 
-    bridgeServo1.write(140); 
-    bridgeServo2.write(140); 
+    bridgeServo1.write(firstBridgeUpperAngle); 
+    bridgeServo2.write(secondBridgeUpperAngle); 
 }
 
 void Bridge::customAngle(int angle1, int angle2) { 

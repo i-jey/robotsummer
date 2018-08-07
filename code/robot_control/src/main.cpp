@@ -64,7 +64,7 @@ constexpr int left_edge_QRD = PA7;
 
 // Bridge pins 
 constexpr int bridgePin1 = PB9; 
-constexpr int bridgePin2 = PB2; 
+constexpr int bridgePin2 = PA10; 
 
 // Right claw pins 
 constexpr int right_clamp_pin = PB8; 
@@ -87,9 +87,9 @@ constexpr int basketLim = PC13;
 // Bridge 
 int edgeThreshold = 500; 
 int bridge1LowerAngle = 40; 
-int bridge1UpperAngle = 130; 
+int bridge1UpperAngle = 115; 
 int bridge2LowerAngle = 80; 
-int bridge2UpperAngle = 140; 
+int bridge2UpperAngle = 165; 
 
 // PID constants
 int p = 0;
@@ -421,6 +421,7 @@ void loop() {
         // Both claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
+
         // Hold basket
         basket.holdBasket(); 
 

@@ -31,8 +31,8 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     this->dVal = d; 
 
     // Initialize bridge angle 
-    bridge.firstBridgeLowerAngle = 40;
-    bridge.firstBridgeUpperAngle = 130; 
+    // bridge.firstBridgeLowerAngle = 40;
+    // bridge.firstBridgeUpperAngle = 130; 
 
     reducedSpeed = 230; // no need for this for now
 }
@@ -75,7 +75,7 @@ void MotorControl::specialStateChecker() {
         if (edgeCounters == 0 && ewokCounter == 1) { 
             // Switch to first bridge sequence
             state = 9; 
-            delay = millis() + 25; 
+            delay = millis() + 50; 
             edgeCounters++; 
         }
 
@@ -219,12 +219,12 @@ void MotorControl::poll() {
             rotateLeftJolt(); 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 100; 
+                delay = millis() + 130; 
             }
             break; 
         case 10: 
             // Edge detected on left, align with right
-            leftMotor.write(-200); 
+            leftMotor.write(-220); 
             rightMotor.write(0); 
 
             if (millis() > delay) { 
@@ -337,36 +337,34 @@ void MotorControl::poll() {
             // Hold the ewok
             leftClaw.stateOverride(CLAW_UP); 
 
-            // We've probably slided. Temporary backward jolt. 
+            // Ewok grabbed, drive till right edge is off 
+            leftMotor.write(defaultSpeed); 
+            rightMotor.write(defaultSpeed); 
+
+            if (bridge.detectLeftEdge() || bridge.detectRightEdge()) { 
+                state++; 
+                delay = millis() + 20;  
+            }
+            break; 
+        case 21: 
+            // Reverse immediately for a short duration after edge detected
             leftMotor.write(-255); 
             rightMotor.write(-255); 
 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 100;  
-            }
-            break; 
-        case 21: 
-            // Reverse 
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(-defaultSpeed); 
-
-            if (millis() > delay) { 
-                nextState = ++state;
-                state = 101; 
-                delay = millis() + 500; 
-                nextDelay = s3TiltLeftTime; 
+                delay = millis() + 100; 
             }
             break; 
         case 22: 
             // Rotate left, pivot on left wheel
             leftMotor.write(0); 
-            rightMotor.write(defaultSpeed + 30); 
+            rightMotor.write(255); 
             if (millis() > delay) { 
                 nextState = ++state;  
                 state = 101;
-                delay = millis() + 1500; 
-                nextDelay = 0; 
+                delay = millis() + 1000; 
+                nextDelay = 1500; 
             }
             break; 
         case 23: 
@@ -408,7 +406,7 @@ void MotorControl::poll() {
                 delay = millis() + 25; 
             }
             break; 
-        case 27:    
+        case 27: 
             // Temporary backward jolt 
             if (millis() < delay) { 
                 leftMotor.write(-255); 
@@ -434,6 +432,7 @@ void MotorControl::poll() {
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + 1000; 
+                bridge.raiseBoth();
                 leftClaw.stateOverride(CLAW_DOWN); 
             }
             break; 
@@ -564,9 +563,6 @@ void MotorControl::poll() {
             }
             break; 
         case 41: 
-            // leftClaw.stateOverride(CLAW_UP); 
-            // rightClaw.stateOverride(CLAW_UP);
-            
             // Quick rotation jolt to guard against stalling
             if (millis() < delay) { 
                 rotateRightJolt();
@@ -584,21 +580,19 @@ void MotorControl::poll() {
             // Temporary jolt to stop sliding after finding right edge
             if (millis() < delay) { 
                 rotateLeftJolt(); 
+                leftClaw.stateOverride(CLAW_PHOENIX); 
+                rightClaw.stateOverride(CLAW_PHOENIX);
             }
             else { 
                 leftMotor.write(0); 
                 rightMotor.write(0); 
             }
 
-            leftClaw.stateOverride(CLAW_PHOENIX); 
-            rightClaw.stateOverride(CLAW_PHOENIX);
-
             if (!basket.readBasketSwitch()) { 
                 basket.raiseBasket();
             }
             else { 
                 state++; 
-                bridge.customAngle(80, 80); 
             }
             break; 
         case 43: 
@@ -622,6 +616,7 @@ void MotorControl::poll() {
             }
             break; 
         case 45: 
+            bridge.customAngle(80, 80); 
             leftMotor.write(-255); 
             rightMotor.write(-255); 
 
@@ -758,8 +753,8 @@ void MotorControl::pid() {
 }
 
 void MotorControl::rotateLeft() { 
-    leftMotor.write(-140); 
-    rightMotor.write(140);
+    leftMotor.write(-180); 
+    rightMotor.write(180);
 }
 
 void MotorControl::rotateRight() { 

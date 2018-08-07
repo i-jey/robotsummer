@@ -21,7 +21,7 @@ void Basket::lowerBasket() {
 }
 
 void Basket::holdBasket() { 
-    basketServo.writeMicroseconds(1425); 
+    basketServo.writeMicroseconds(1422); 
 }
 
 bool Basket::readBasketSwitch() { 
