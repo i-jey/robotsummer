@@ -290,69 +290,110 @@ void MotorControl::poll() {
             
             if (millis() > delay) { 
                 state++; 
+                delay = millis() + 100; 
             }
             break; 
-        case 16: 
-            // Drive over bridge
-            leftMotor.write(defaultSpeed); 
-            rightMotor.write(defaultSpeed); 
+        case 16:
+            // Temporary forward to ensure pid qrds aren't facing up
+            leftMotor.write(defaultSpeed+5); 
+            rightMotor.write(defaultSpeed-5);
 
-            if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
-                state = 100; 
+            if (millis() > delay) { 
+                state++; 
+                delay = millis() + 1500; 
             }
             break; 
         case 17: 
-            // Stop motors 
-            leftMotor.write(0); 
-            rightMotor.write(0); 
+            // Drive over bridge
+            leftMotor.write(defaultSpeed+5); 
+            rightMotor.write(defaultSpeed-5); 
+            
             if (millis() > delay) { 
-                state++; 
-                bridge.raiseBridge1(); 
-                delay = millis() + driveOverDistance;
+                // Sweep right 
+                leftMotor.write(0); 
+                rightMotor.write(-150); 
+
+                if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                    state++; 
+                    delay = millis() + 30;
+                }
+            }
+            else { 
+                if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                    state++; 
+                    delay = millis() + 30;
+                }
             }
             break; 
         case 18: 
-            // Drive over bridge
-            leftMotor.write(150 + 10); 
-            rightMotor.write(150 - 5); 
+            // Quick brake 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
 
-            if (millis() > delay) { 
-                nextState = ++state;
-                nextDelay = 1000;  
-                state = 101; 
-            }
-
-            break; 
-        case 19: 
-            // Sweep for tape 
-            leftMotor.write(170); 
-            rightMotor.write(-170); 
-
-            if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
-                // nextState = ++state; 
-                // state = 101; 
-                // nextDelay = irPidTime; 
-                // delay = millis() + 1000; 
-                state++; 
-                delay = millis() + 20;
-            }
-            break; 
-        case 20: 
-            // Temporary left jolt 
-            rotateLeftJolt(); 
             if (millis() > delay) { 
                 state++; 
                 delay = millis() + irPidTime;
             }
             break; 
-        case 21: 
-            // Temporary pid to align
-            pid();
+        case 19: 
+            pid(); 
             if (millis() > delay) { 
-                state = 2; 
-                firstBridgeSequenceDone = true; 
+                state++; 
+                delay = millis() + 30; 
             }
-            break;
+            break; 
+        case 20: 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
+
+            if (millis() > delay) {
+                state = 100; 
+            }
+            break; 
+        // case 17: 
+        //     // Stop motors 
+        //     leftMotor.write(0); 
+        //     rightMotor.write(0); 
+        //     if (millis() > delay) { 
+        //         state++; 
+        //         bridge.raiseBridge1(); 
+        //         delay = millis() + driveOverDistance;
+        //     }
+        //     break; 
+        // case 18: 
+        //     // Drive over bridge
+        //     leftMotor.write(150 + 10); 
+        //     rightMotor.write(150 - 5); 
+
+        //     if (millis() > delay) { 
+        //         nextState = ++state;
+        //         nextDelay = 1000;  
+        //         state = 101; 
+        //     }
+
+        //     break; 
+        // case 19: 
+        //     // Sweep for tape 
+        //     leftMotor.write(170); 
+        //     rightMotor.write(-170); 
+
+        //     if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+        //         // nextState = ++state; 
+        //         // state = 101; 
+        //         // nextDelay = irPidTime; 
+        //         // delay = millis() + 1000; 
+        //         state++; 
+        //         delay = millis() + 20;
+        //     }
+        //     break; 
+        // case 20: 
+        //     // Temporary left jolt 
+        //     rotateLeftJolt(); 
+        //     if (millis() > delay) { 
+        //         state++; 
+        //         delay = millis() + irPidTime;
+        //     }
+        //     break; 
         // THROW SEQUENCE 
         case 22: 
             // Ewok grabbed, rotate for a set time

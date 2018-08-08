@@ -198,11 +198,11 @@ void initializeFromEEPROM() {
     if (defaultSpeed == -1) {defaultSpeed = 190; motorControl.updateDefaultSpeed(defaultSpeed);}
 
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 300;}
-    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 400;}
+    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 420;}
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1100;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 685;}
+    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 600;}
 
     if (motorControl.s3TiltLeftTime == -1) {motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) {motorControl.s3ReverseTime = 250;}
