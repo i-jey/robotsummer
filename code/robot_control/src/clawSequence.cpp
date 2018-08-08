@@ -83,8 +83,13 @@ void ClawSequence::poll() {
             break;
         case 12: 
             // Phoenix 
-            arm.phoenix(); 
+            arm.close();
+            arm.phoenix();   
+            break; 
+        case 13: 
             arm.close(); 
+            arm.raise(); 
+            break; 
         default: 
             break; 
     }; 
@@ -101,4 +106,8 @@ void ClawSequence::stateOverride(int specialState) {
 
 int ClawSequence::getState() { 
     return state; 
+}
+
+void ClawSequence::customAngle(int angle) { 
+    arm.customAngle(angle); 
 }

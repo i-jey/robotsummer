@@ -21,6 +21,7 @@ class ClawSequence {
         void poll(); 
         void stateOverride(int specialState); 
         int getState(); 
+        void customAngle(int angle); 
 };
 
 #endif

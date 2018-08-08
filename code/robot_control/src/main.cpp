@@ -195,11 +195,11 @@ void initializeFromEEPROM() {
     if (p == -1) {p = 5; motorControl.updateP(p);}
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 230; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (defaultSpeed == -1) {defaultSpeed = 190; motorControl.updateDefaultSpeed(defaultSpeed);}
 
-    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 0;}
-    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 300;}
-    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 2100;}
+    if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 300;}
+    if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 400;}
+    if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1100;}
     if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
     if (motorControl.irPidTime == -1) {motorControl.irPidTime = 685;}
@@ -423,6 +423,9 @@ void loop() {
 
         // Hold basket
         basket.holdBasket(); 
+
+        // Raise bridges
+        bridge.raiseBoth(); 
 
         if (initialize) {
             initializeFromEEPROM(); 
