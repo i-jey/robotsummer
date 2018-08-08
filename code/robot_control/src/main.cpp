@@ -101,7 +101,7 @@ int defaultSpeed = 120;
 // Claw 
 int leftClawCloseAngle = 177; 
 int leftClawOpenAngle = 60; 
-int leftClawOpenAngleInside = 102; 
+int leftClawOpenAngleInside = 70; 
 int leftClawLowerAngle = 20; 
 int leftClawRaiseAngle = 180; 
 int leftVertical = 130; 
@@ -200,7 +200,7 @@ void initializeFromEEPROM() {
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 300;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 420;}
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1100;}
-    if (edgeThreshold == -1) {edgeThreshold = 500; motorControl.updateEdgeThreshold(edgeThreshold);}
+    if (edgeThreshold == -1) {edgeThreshold = 900; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
     if (motorControl.irPidTime == -1) {motorControl.irPidTime = 600;}
 
