@@ -22,6 +22,7 @@ unsigned long nextDelay = 0;
 #define CLAW_DOWN 11
 #define CLAW_PHOENIX 12
 #define CLAW_IN 13
+#define CLAW_JITTER 14
 
 MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, IRReader &ir, 
     Basket &basket, TapeFollow &pidControl, ClawSequence &leftClaw, ClawSequence &rightClaw, int qrdThreshold, int gain, int p, int i, int d) 
@@ -119,7 +120,7 @@ void MotorControl::specialStateChecker() {
             rightClaw.stateOverride(CLAW_UP); 
             reducedSpeed = 190; // Revert back to default speed
             throughGate = true;
-            specialStateDelay = millis() + 3700; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + leftClawDownDelay; // delay to get from gate to after storm troopers before bringing left claw down 
         }
     }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
@@ -128,11 +129,11 @@ void MotorControl::specialStateChecker() {
         rightClaw.stateOverride(CLAW_UP); 
 
         beforeStormTroopers = false; 
-        specialStateDelay = millis() + 350; 
+        specialStateDelay = millis() + 500; 
     }
     if (millis() > specialStateDelay && !beforeStormTroopers && clawStartWait) { 
         // Start left claw polling
-        leftClaw.stateOverride(CLAW_POLL); 
+        leftClaw.stateOverride(CLAW_JITTER); 
         clawStartWait = false; 
     }
 
@@ -140,8 +141,8 @@ void MotorControl::specialStateChecker() {
         // Sequence to switch to after third ewok
         state = 39; 
         afterStormTroopers = false; 
-        delay = millis() + 2000; 
-        specialStateDelay = millis() + 2000; 
+        delay = millis() + 3000; 
+        specialStateDelay = millis() + 3000; 
     }
     if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
         // Bring left claw back up after ewok has been picked and dropped
@@ -284,8 +285,8 @@ void MotorControl::poll() {
             break; 
         case 14: 
             // Reverse to drop bridge 
-            leftMotor.write(-defaultSpeed); 
-            rightMotor.write(-defaultSpeed); 
+            leftMotor.write(-190); 
+            rightMotor.write(-190); 
             
             if (millis() > delay) { 
                 state++; 
@@ -306,8 +307,8 @@ void MotorControl::poll() {
             break; 
         case 16:
             // Temporary forward to ensure pid qrds aren't facing up
-            leftMotor.write(defaultSpeed+5); 
-            rightMotor.write(defaultSpeed-5);
+            leftMotor.write(190+5); 
+            rightMotor.write(190-5);
 
             if (millis() > delay) { 
                 state++; 
@@ -316,8 +317,8 @@ void MotorControl::poll() {
             break; 
         case 17: 
             // Drive over bridge
-            leftMotor.write(defaultSpeed+10); 
-            rightMotor.write(defaultSpeed-5); 
+            leftMotor.write(190+20); 
+            rightMotor.write(190-5); 
             
             if (millis() > delay) { 
                 // Sweep right 
@@ -504,8 +505,8 @@ void MotorControl::poll() {
             }
             else { 
                 // Rotate right, pivot about center
-                leftMotor.write(160);
-                rightMotor.write(-160); 
+                leftMotor.write(200);
+                rightMotor.write(-200); 
             }  
 
             if (bridge.detectRightEdge()) { 
@@ -534,8 +535,8 @@ void MotorControl::poll() {
             }
             break; 
         case 43: 
-            leftMotor.write(200);
-            rightMotor.write(200);  
+            leftMotor.write(210);
+            rightMotor.write(190);  
             basket.holdBasket(); 
 
             if (!basket.readBasketSwitch()) { 
@@ -559,7 +560,7 @@ void MotorControl::poll() {
 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 1500; 
+                delay = millis() + 500; 
             }
             break; 
         case 46: 
@@ -568,9 +569,22 @@ void MotorControl::poll() {
             rightMotor.write(-255); 
 
             if (millis() > delay) { 
-                state = 100; 
+                state++; 
+                delay = millis() + 750; 
             }
             break;
+        case 47: 
+            leftMotor.write(-255); 
+            rightMotor.write(-255); 
+            leftClaw.stateOverride(100); 
+            rightClaw.stateOverride(100); 
+            leftClaw.customAngle(leftDab); 
+            rightClaw.customAngle(rightDab); 
+
+            if (millis() > delay) { 
+                state = 100; 
+            }
+            break; 
         // SECOND BRIDGE SEQUENCE
         case 50: 
             // Continue PIDing until edge detected

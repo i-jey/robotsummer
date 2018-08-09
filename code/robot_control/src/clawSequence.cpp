@@ -90,6 +90,70 @@ void ClawSequence::poll() {
             arm.close(); 
             arm.raise(); 
             break; 
+        // Jitter sequence
+        case 14: 
+            if (arm.ewokDetected()) { 
+                ewokCounter++; 
+                arm.close(); 
+                state++; 
+                delay = millis() + closeTime; 
+            }
+            else { 
+                arm.open(!INSIDE); 
+                // Only read every 50ms, avoids false button reads
+                delay = millis() + 100; 
+            }
+            break; 
+        case 15: 
+            arm.raise(); 
+            state++; 
+            delay = millis() + raiseTime; 
+            break; 
+        case 16: 
+            arm.open(INSIDE); 
+            state++; 
+            delay = millis() + openTime; 
+            break; 
+        case 17: 
+            arm.close(); 
+            state++; 
+            delay = millis() + closeTime; 
+            break; 
+        case 18: 
+            arm.open(INSIDE);
+            state++;
+            delay = millis() + openTime;  
+            break; 
+        case 19: 
+            arm.customAngle(150); 
+            state++;
+            delay = millis() + 300;
+            break; 
+        case 20: 
+            arm.customAngle(180); 
+            state++;
+            delay = millis() + 300; 
+            break; 
+        case 21:
+            arm.customAngle(150);
+            state++;
+            delay = millis() + 300;  
+            break; 
+        case 22:
+            arm.customAngle(180);
+            state++;
+            delay = millis() + 300; 
+            break; 
+        case 23: 
+            arm.lower(); 
+            state++; 
+            delay = millis() + lowerTime; 
+            break; 
+        case 24: 
+            arm.close(); 
+            break; 
+        case 100: 
+            break; 
         default: 
             break; 
     }; 

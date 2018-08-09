@@ -77,6 +77,7 @@ class MotorControl {
         int s3LeftPullBackTime = 250; 
         int bias; 
         int irPidTime; 
+        int leftClawDownDelay = 3500; 
 };
 
 #endif

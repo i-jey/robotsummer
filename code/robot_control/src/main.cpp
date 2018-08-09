@@ -105,7 +105,8 @@ int leftClawOpenAngleInside = 70;
 int leftClawLowerAngle = 20; 
 int leftClawRaiseAngle = 180; 
 int leftVertical = 153; 
-int leftPhoenix = 61; 
+int leftPhoenix = 68; 
+int leftDab = 81; 
 
 int rightClawCloseAngle = 0; 
 int rightClawOpenAngle = 105; 
@@ -113,7 +114,8 @@ int rightClawOpenAngleInside = 78;
 int rightClawLowerAngle = 160; 
 int rightClawRaiseAngle = 20; 
 int rightVertical = 60; 
-int rightPhoenix = 115; 
+int rightPhoenix = 81; 
+int rightDab = 18; 
 
 int closeTime = 250; 
 int raiseTime = 1000; 
@@ -195,7 +197,7 @@ void initializeFromEEPROM() {
     if (p == -1) {p = 5; motorControl.updateP(p);}
     if (d == -1) {d = 5; motorControl.updateD(d);}
     if (gain == -1) {gain = 13; motorControl.updateGain(gain);}
-    if (defaultSpeed == -1) {defaultSpeed = 190; motorControl.updateDefaultSpeed(defaultSpeed);}
+    if (defaultSpeed == -1) {defaultSpeed = 210; motorControl.updateDefaultSpeed(defaultSpeed);}
 
     if (motorControl.edgeReverseDistance == -1) {motorControl.edgeReverseDistance = 300;}
     if (motorControl.dropBridgeDistance == -1) {motorControl.dropBridgeDistance = 420;}
@@ -410,6 +412,39 @@ void postTrooperMenu() {
     }
 }
 
+void competitionValueInitialization() { 
+    delay(150); 
+    if (digitalRead(menuToggle)) {
+        toggle = !toggle; 
+    }
+
+    if (toggle) { 
+        // LEFT SURFACE 
+
+        // Set values
+        motorControl.leftClawDownDelay = 3300; 
+        motorControl.irPidTime = 700; 
+        motorControl.updateDefaultSpeed(190); 
+
+        // Display
+        oled.print("Left surface", 0, 0); 
+        oled.print("claw down time: ", 0, 10);
+        oled.printNumI(motorControl.leftClawDownDelay, RIGHT, 10);  
+        oled.print("ir pid time: ", 0, 20);
+        oled.printNumI(motorControl.irPidTime, RIGHT, 20);  
+
+    }
+    else {
+        motorControl.leftClawDownDelay = 3400; 
+        motorControl.irPidTime = 700; 
+
+        oled.print("Right surface", 0, 0); 
+        oled.print("claw down time", 0, 10); 
+        oled.printNumI(motorControl.leftClawDownDelay, RIGHT, 10);
+        oled.print("ir pid time: ", 0, 20);
+        oled.printNumI(motorControl.irPidTime, RIGHT, 20);  
+    }
+}
 bool initialize = true; 
 bool initMotors = true; 
 int switchMenus = 0; 
@@ -434,6 +469,7 @@ void loop() {
         if (initialize) {
             initializeFromEEPROM(); 
             initialize = false;
+            basket.raiseBasket(); 
         }
         if (digitalRead(menuToggle)) {
             if (switchMenus == 2) {
@@ -445,16 +481,16 @@ void loop() {
             optionState = 0;
         }
         oled.clrScr(); 
-        
-        if (switchMenus == 0) { 
-            pidMenu(); 
-        }
-        else if (switchMenus == 1) { 
-            bridgeMenu();   
-        }
-        else if (switchMenus == 2) { 
-            postTrooperMenu(); 
-        }
+        competitionValueInitialization(); 
+        // if (switchMenus == 0) { 
+        //     pidMenu(); 
+        // }
+        // else if (switchMenus == 1) { 
+        //     bridgeMenu();   
+        // }
+        // else if (switchMenus == 2) { 
+        //     postTrooperMenu(); 
+        // }
 
         oled.update();  
         initMotors = true; 

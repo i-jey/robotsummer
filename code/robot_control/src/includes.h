@@ -13,6 +13,8 @@ extern bool lowerBasket;
 // Claw 
 extern int rightClawState; 
 extern int leftClawState; 
+extern int leftDab; 
+extern int rightDab;
 
 // libraries 
 #include <Arduino.h>
