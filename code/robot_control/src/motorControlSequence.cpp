@@ -119,7 +119,7 @@ void MotorControl::specialStateChecker() {
             rightClaw.stateOverride(CLAW_UP); 
             reducedSpeed = 190; // Revert back to default speed
             throughGate = true;
-            specialStateDelay = millis() + 3300; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 3700; // delay to get from gate to after storm troopers before bringing left claw down 
         }
     }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
