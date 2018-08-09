@@ -36,7 +36,7 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     // bridge.firstBridgeLowerAngle = 40;
     // bridge.firstBridgeUpperAngle = 130; 
 
-    reducedSpeed = 150; // no need for this for now
+    reducedSpeed = 120; // no need for this for now
 }
 
 void MotorControl::begin() { 
@@ -104,6 +104,7 @@ void MotorControl::specialStateChecker() {
     }
     if (ewokCounter == 2 && clawBeforeGate) { 
         specialStateDelay = millis() + 1350; 
+        leftClaw.stateOverride(CLAW_UP); 
         clawBeforeGate = false;  
     }
     if (ewokCounter == 2 && !throughGate) { 
@@ -113,17 +114,16 @@ void MotorControl::specialStateChecker() {
 
         // Freeze, both hands up! oh god please don't shoot please im too yung
         if (millis() > specialStateDelay) { 
-            leftClaw.stateOverride(CLAW_UP); 
             rightClaw.stateOverride(CLAW_UP); 
             reducedSpeed = 190; 
             throughGate = true;
-            specialStateDelay = millis() + 3650; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 3700; // delay to get from gate to after storm troopers before bringing left claw down 
         }
     }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
         // We've passed Stormy Daniels, bring left claw down (but wait before polling to prevent it triggering itself)
-        leftClaw.stateOverride(11); 
-        rightClaw.stateOverride(10); 
+        leftClaw.stateOverride(CLAW_DOWN); 
+        rightClaw.stateOverride(CLAW_UP); 
 
         beforeStormTroopers = false; 
         specialStateDelay = millis() + 350; 
@@ -138,9 +138,8 @@ void MotorControl::specialStateChecker() {
         // Sequence to switch to after third ewok
         state = 39; 
         afterStormTroopers = false; 
-        // delay = millis() + 550;
-        delay = millis() + 500; 
-        specialStateDelay = millis() + 1350; 
+        delay = millis() + 1550; 
+        specialStateDelay = millis() + 1450; 
     }
     if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
         // Bring left claw back up after ewok has been picked and dropped
@@ -310,12 +309,12 @@ void MotorControl::poll() {
 
             if (millis() > delay) { 
                 state++; 
-                delay = millis() + 1500; 
+                delay = millis() + 2000; 
             }
             break; 
         case 17: 
             // Drive over bridge
-            leftMotor.write(defaultSpeed+5); 
+            leftMotor.write(defaultSpeed+10); 
             rightMotor.write(defaultSpeed-5); 
             
             if (millis() > delay) { 
@@ -323,13 +322,13 @@ void MotorControl::poll() {
                 leftMotor.write(0); 
                 rightMotor.write(-150); 
 
-                if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                if (pidControl.leftOnTape()) { 
                     state++; 
                     delay = millis() + 30;
                 }
             }
             else { 
-                if (pidControl.leftOnTape() || pidControl.rightOnTape()) { 
+                if (pidControl.leftOnTape()) { 
                     state++; 
                     delay = millis() + 30;
                 }
@@ -822,7 +821,7 @@ void MotorControl::continuousReverse() {
 void MotorControl::pid() { 
     // Bridge done, 10k signal, move with a reduced speed 
     if (firstBridgeSequenceDone && irGo && beforeStormTroopers) { 
-        pidControl.followTape(qrdThreshold, gain-1, pVal-1, iVal, dVal, reducedSpeed);
+        pidControl.followTape(qrdThreshold, gain, 17, iVal, dVal, reducedSpeed);
     }
     else { 
         pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed);

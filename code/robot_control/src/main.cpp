@@ -202,7 +202,7 @@ void initializeFromEEPROM() {
     if (motorControl.driveOverDistance == -1) {motorControl.driveOverDistance = 1100;}
     if (edgeThreshold == -1) {edgeThreshold = 900; motorControl.updateEdgeThreshold(edgeThreshold);}
     if (qrdThreshold == -1) {qrdThreshold = 900; motorControl.updateThreshold(qrdThreshold);}
-    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 600;}
+    if (motorControl.irPidTime == -1) {motorControl.irPidTime = 800;}
 
     if (motorControl.s3TiltLeftTime == -1) {motorControl.s3TiltLeftTime = 650;}
     if (motorControl.s3ReverseTime == -1) {motorControl.s3ReverseTime = 250;}
@@ -417,10 +417,17 @@ int switchMenus = 0;
 void loop() {  
     start = digitalRead(startBtn); 
     if (!start) { 
+        // Stop motors 
+        leftMotor.write(0); 
+        rightMotor.write(0); 
+
         // Both claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
 
+        // Both claws down and polling
+        leftArm.open(!INSIDE); leftArm.lower(); leftClaw.stateOverride(0); 
+        rightArm.open(!INSIDE); rightArm.lower(); rightClaw.stateOverride(0); 
         // Hold basket
         basket.holdBasket(); 
 
