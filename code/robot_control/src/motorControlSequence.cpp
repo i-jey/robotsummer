@@ -12,6 +12,7 @@ bool clawStartWait = true;
 bool clawBeforeGate = true; 
 bool afterThirdEwok = true; 
 bool ohBabyADouble = false; 
+bool restartNormalPID = false; 
 int reducedSpeed;
 int nextState = 0; 
 unsigned long nextDelay = 0; 
@@ -36,7 +37,7 @@ MotorControl::MotorControl(Motor &leftMotor, Motor &rightMotor, Bridge &bridge, 
     // bridge.firstBridgeLowerAngle = 40;
     // bridge.firstBridgeUpperAngle = 130; 
 
-    reducedSpeed = 120; // no need for this for now
+    reducedSpeed = 130; // no need for this for now
 }
 
 void MotorControl::begin() { 
@@ -114,10 +115,11 @@ void MotorControl::specialStateChecker() {
 
         // Freeze, both hands up! oh god please don't shoot please im too yung
         if (millis() > specialStateDelay) { 
+            restartNormalPID = true; 
             rightClaw.stateOverride(CLAW_UP); 
-            reducedSpeed = 190; 
+            reducedSpeed = 190; // Revert back to default speed
             throughGate = true;
-            specialStateDelay = millis() + 3700; // delay to get from gate to after storm troopers before bringing left claw down 
+            specialStateDelay = millis() + 3300; // delay to get from gate to after storm troopers before bringing left claw down 
         }
     }
     if (millis() > specialStateDelay && ewokCounter == 2 && beforeStormTroopers && throughGate) { 
@@ -138,8 +140,8 @@ void MotorControl::specialStateChecker() {
         // Sequence to switch to after third ewok
         state = 39; 
         afterStormTroopers = false; 
-        delay = millis() + 1550; 
-        specialStateDelay = millis() + 1450; 
+        delay = millis() + 2000; 
+        specialStateDelay = millis() + 2000; 
     }
     if (ewokCounter == 3 && afterThirdEwok && !afterStormTroopers) { 
         // Bring left claw back up after ewok has been picked and dropped
@@ -819,9 +821,10 @@ void MotorControl::continuousReverse() {
 }   
 
 void MotorControl::pid() { 
-    // Bridge done, 10k signal, move with a reduced speed 
-    if (firstBridgeSequenceDone && irGo && beforeStormTroopers) { 
-        pidControl.followTape(qrdThreshold, gain, 17, iVal, dVal, reducedSpeed);
+    // Bridge done, 10k signal, move with a reduced speed and altered pid. 
+    // Go back to normal PID after claw goes back up  
+    if (firstBridgeSequenceDone && irGo && beforeStormTroopers && !restartNormalPID) { 
+        pidControl.followTape(qrdThreshold, gain, 16, iVal, dVal, reducedSpeed);
     }
     else { 
         pidControl.followTape(qrdThreshold, gain, pVal, iVal, dVal, defaultSpeed);

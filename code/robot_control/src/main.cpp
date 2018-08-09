@@ -104,7 +104,7 @@ int leftClawOpenAngle = 60;
 int leftClawOpenAngleInside = 70; 
 int leftClawLowerAngle = 20; 
 int leftClawRaiseAngle = 180; 
-int leftVertical = 130; 
+int leftVertical = 153; 
 int leftPhoenix = 61; 
 
 int rightClawCloseAngle = 0; 
@@ -424,10 +424,7 @@ void loop() {
         // Both claws up 
         leftArm.close(); leftArm.verticalRaise(); 
         rightArm.close(); rightArm.verticalRaise(); 
-
-        // Both claws down and polling
-        leftArm.open(!INSIDE); leftArm.lower(); leftClaw.stateOverride(0); 
-        rightArm.open(!INSIDE); rightArm.lower(); rightClaw.stateOverride(0); 
+        
         // Hold basket
         basket.holdBasket(); 
 
