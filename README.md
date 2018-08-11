@@ -4,6 +4,19 @@ ENPH Second Year Summer
 ## Description 
 Repo to host team code, docs, CAD models, circuit schematics and other useful items. 
 
+## COMPETITION RUNS 
+[Video of all teams at competition here.](https://www.youtube.com/watch?v=OxAf1p7clqE)
+
+Our runs found at: 
+
+* [8:40](https://youtu.be/OxAf1p7clqE?t=8m40s)
+
+* [46:23](https://youtu.be/OxAf1p7clqE?t=46m23s)
+
+* [1:07:25](https://youtu.be/OxAf1p7clqE?t=1h7m25s)
+
+* [Tape follower: 57:10](https://youtu.be/OxAf1p7clqE?t=57m10s)
+
 ## Documentation site 
 https://i-jey.github.io/robotsummer/
 
