@@ -1,8 +1,6 @@
 Electrical Components, Debugging, Diagrams etc.
 === 
 
-## Circuits
-
 # H-bridges
 
 PL2 used a specialty circuit known as an H-bridge to drive its motors at high voltages and currents while maintaining smooth and consistent control. The H-bridge circuits (one per motor) were constructed from multiple MOSFETs, capacitors, and a gate driver IC chip.
