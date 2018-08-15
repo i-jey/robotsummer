@@ -8,7 +8,3 @@ PL2 used a specialty circuit known as an H-bridge to drive its motors at high vo
 ## IR detection circuits
 
 Part of the competition course required passing through a gate only when an infrared beacon was emitting a 10kHz frequency (as opposed to 1kHz). To detect these frequencies, two active-filter circuits were constructed using multiple series Op-Amps and RC circuits. The circuits followed a DC-block->amplify->filter->amplify sequence to ensure that each circuit (the 1kHz and 10kHz) output a high DC voltage when the front detector picked up the circuit's respective frequency.
-
-## Menu/control system
-
-A multi-menu control panel was implemented on to the side of PL2 to allow for on-the-spot value adjustment and testing.
