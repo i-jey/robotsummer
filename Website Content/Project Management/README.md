@@ -9,7 +9,7 @@ Robot: PL2 W7K (Pronounced "Please Work")
 ## The Challenge: Ewok Rescue
 The 2018 ENPH253 challenge revolved around rescuing 4 plush ewoks and Chewbacca from the imperial fortress. Obstacles included two gaps/valleys in the course, an infrared-triggered spinning platform, two (optional) ziplines, and a pathless bridge separating Chewbacca from the rest of the course.
 
-*The full rules of the competition can be found [here](https://docs.google.com/document/d/18rYIVlMZeD559deR7-5YjfQzZz4BeeS6pr8FI5Qlm8Q/edit*)
+*The full rules of the competition can be found [here](https://docs.google.com/document/d/18rYIVlMZeD559deR7-5YjfQzZz4BeeS6pr8FI5Qlm8Q/edit)*
 
 ## The Strategy: Strategy and PL2 W7K
 Our approach to completing the course was to have a separate mechanism for each obstacle. We designed a forklift-style mechanism to lay a bridge over the gaps. The infrared-triggered spinning platform was avoided using an active-filtering IR detection circuit. The bridge mechanism allowed us to avoid requiring the first zipline, while the second was used to transport our ewok-filled basket back to the "safe zone". The pathless bridge would be traversed using edge detection-and-follow algorithm.
