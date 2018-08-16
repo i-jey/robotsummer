@@ -19,7 +19,7 @@ This analog circuit was a series of singal manipulators to decode the flashing o
 4. Analog to digital conversion and amplification
       The final convertion is required to turn the detection of the appropriate signal into a digital high that the mirco-controller may interpret. The amplification is required in the event the non-fluctuating voltage is not large enough for the mirco-controller to read a digital high.
       
-# Inverter
+### Inverter
 As a part of the analog circuits a switching-inverter was used to supply VCC- to the operational amplifiers.
 
 ## Attempted: Encoders
