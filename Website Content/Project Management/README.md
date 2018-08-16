@@ -24,4 +24,9 @@ The team picked up many "dos and don'ts" along the way, as we strongly noticed w
 
 - Avoid using header pins - they do not make reliable connections in wired applications
 
--
+- Design modularly - ensure that each part/system can be easily accessed, replaced and maintained without interfering with other systems
+
+- Continuously test - test subsystems, systems and sequences not only for functionality but also for consistency alongside development to save time debugging
+
+- Sample size - consider outliers in your analysis but do not base your judgement single occurrences (for both failures and successes)
+
